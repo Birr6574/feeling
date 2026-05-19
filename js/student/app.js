@@ -58,7 +58,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 function syncProfileUiFromAccounts() {
-  const uid = localStorage.getItem('emotion-checkin-logged-user');
+  const uid = (typeof _getSessionValue === 'function')
+    ? _getSessionValue('emotion-checkin-logged-user')
+    : localStorage.getItem('emotion-checkin-logged-user');
   if (
     !uid ||
     typeof getLocalAccounts !== 'function' ||

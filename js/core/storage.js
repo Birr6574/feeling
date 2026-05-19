@@ -15,6 +15,14 @@ var _studentClassCache = null;   // { id, classCode, className } 또는 null
 var _teacherClassCache = null;   // { id, classCode, className, notice } 또는 null
 
 // ------------------------------------
+// 세션 값 읽기 헬퍼 (localStorage 우선, 없으면 sessionStorage)
+// ------------------------------------
+
+function _getSessionValue(key) {
+  return localStorage.getItem(key) || sessionStorage.getItem(key) || null;
+}
+
+// ------------------------------------
 // 탭 간 동기화 알림
 // ------------------------------------
 
@@ -45,7 +53,7 @@ async function loadEmotionsForUser(userId) {
 }
 
 async function saveEmotion(emo, label, note) {
-  var userId = localStorage.getItem('emotion-checkin-logged-user');
+  var userId = _getSessionValue('emotion-checkin-logged-user');
   if (!userId) return null;
   var entry = {
     emo: emo,
@@ -83,7 +91,7 @@ async function loadNoticeForStudent(userId) {
 
 // 교사 화면에서 공지 설정
 async function setTeacherMessage(text) {
-  var userId = localStorage.getItem('emotion-checkin-teacher-user');
+  var userId = _getSessionValue('emotion-checkin-teacher-user');
   if (!userId) return;
   var t = String(text || '').trim();
   await apiCall('setNotice', { teacherUserId: userId, notice: t });
@@ -91,7 +99,7 @@ async function setTeacherMessage(text) {
 }
 
 async function clearTeacherMessage() {
-  var userId = localStorage.getItem('emotion-checkin-teacher-user');
+  var userId = _getSessionValue('emotion-checkin-teacher-user');
   if (!userId) return;
   await apiCall('setNotice', { teacherUserId: userId, notice: '' });
   notifyEmotionAppSync('teacher-msg');
@@ -116,7 +124,7 @@ function isStudentClassLinkActive() {
 async function tryMatchStudentClassCode(input) {
   var code = String(input || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (!code) return { ok: false, error: '학급 코드를 입력해 주세요.' };
-  var userId = localStorage.getItem('emotion-checkin-logged-user');
+  var userId = _getSessionValue('emotion-checkin-logged-user');
   if (!userId) return { ok: false, error: '로그인이 필요해요.' };
   var result = await apiCall('joinClass', { studentUserId: userId, classCode: code });
   if (!result.ok) return { ok: false, error: result.error || '연결할 수 없어요.' };
@@ -126,7 +134,7 @@ async function tryMatchStudentClassCode(input) {
 }
 
 async function clearStudentLinkedClassCode() {
-  var userId = localStorage.getItem('emotion-checkin-logged-user');
+  var userId = _getSessionValue('emotion-checkin-logged-user');
   if (userId) await apiCall('leaveClass', { studentUserId: userId });
   _studentClassCache = null;
   notifyEmotionAppSync('class-room');
@@ -146,7 +154,7 @@ function setTeacherClassCache(info) {
 }
 
 async function setClassRoom(name, _ignored) {
-  var userId = localStorage.getItem('emotion-checkin-teacher-user');
+  var userId = _getSessionValue('emotion-checkin-teacher-user');
   if (!userId) return false;
   var result = await apiCall('createClass', { teacherUserId: userId, className: name });
   if (!result.ok) return false;
@@ -156,7 +164,7 @@ async function setClassRoom(name, _ignored) {
 }
 
 async function clearClassRoom() {
-  var userId = localStorage.getItem('emotion-checkin-teacher-user');
+  var userId = _getSessionValue('emotion-checkin-teacher-user');
   if (userId) await apiCall('deleteClass', { teacherUserId: userId });
   _teacherClassCache = null;
   notifyEmotionAppSync('class-room');
@@ -164,6 +172,31 @@ async function clearClassRoom() {
 
 function normalizeClassJoinCode(raw) {
   return String(raw || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+// ------------------------------------
+// 데이터 초기화 (설정 화면 버튼)
+// ------------------------------------
+
+function clearData() {
+  if (!confirm('로그인 정보와 이 기기의 데이터를 초기화할까요?\n감정 기록은 서버에 그대로 남아있어요.')) return;
+  // 세션 완전 삭제 (localStorage + sessionStorage)
+  var sessionKeys = [
+    'emotion-checkin-logged-user',
+    'emotion-checkin-user-name',
+    'emotion-checkin-teacher-user',
+    'emotion-checkin-teacher-name'
+  ];
+  sessionKeys.forEach(function(k) {
+    localStorage.removeItem(k);
+    sessionStorage.removeItem(k);
+  });
+  // 캐시 초기화
+  _emotionsCache = null;
+  _teacherNoticeCache = null;
+  _studentClassCache = null;
+  _teacherClassCache = null;
+  location.reload();
 }
 
 // ------------------------------------
