@@ -32,8 +32,8 @@
       </div>
       <div id="auth-panel-login" class="auth-panel">
         <form id="form-login" class="auth-form" autocomplete="on">
-          <label class="auth-label" for="login-userid">학번 <span class="auth-hint">(영문 소문자·숫자 3~30자)</span></label>
-          <input class="auth-input" id="login-userid" autocomplete="username" required>
+          <label class="auth-label" for="login-userid">학번</label>
+          <input class="auth-input" id="login-userid" autocomplete="username" inputmode="numeric" pattern="\d*" required>
           <label class="auth-label" for="login-password">비밀번호</label>
           <input class="auth-input" type="password" id="login-password" autocomplete="current-password" required>
           <label class="auth-check-label">
@@ -47,8 +47,8 @@
         <form id="form-signup" class="auth-form" autocomplete="on">
           <label class="auth-label" for="signup-name">이름</label>
           <input class="auth-input" id="signup-name" maxlength="30" placeholder="홍길동" autocomplete="name" required>
-          <label class="auth-label" for="signup-userid">로그인 학번 <span class="auth-hint">(영문 소문자·숫자 3~30자)</span></label>
-          <input class="auth-input" id="signup-userid" maxlength="30" autocomplete="username" required>
+          <label class="auth-label" for="signup-userid">학번</label>
+          <input class="auth-input" id="signup-userid" maxlength="20" autocomplete="username" inputmode="numeric" pattern="\d*" placeholder="숫자만 입력" required>
           <label class="auth-label" for="signup-password">비밀번호 <span class="auth-hint">(6자 이상)</span></label>
           <input class="auth-input" type="password" id="signup-password" autocomplete="new-password" required>
           <label class="auth-label" for="signup-password2">비밀번호 확인</label>

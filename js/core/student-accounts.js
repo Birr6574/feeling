@@ -4,13 +4,13 @@
 =========================== */
 
 function normalizeUserId(userId) {
-  return String(userId).trim().toLowerCase();
+  return String(userId).trim();
 }
 
 function validateUserId(userId) {
   var s = normalizeUserId(userId);
-  if (!/^[a-z0-9._-]{3,30}$/.test(s)) {
-    throw new Error('학번는 영문 소문자·숫자·._- 만, 3~30자여야 해요.');
+  if (!/^\d+$/.test(s) || s.length < 1 || s.length > 20) {
+    throw new Error('학번은 숫자만 입력할 수 있어요.');
   }
   return s;
 }
