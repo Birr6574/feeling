@@ -101,41 +101,19 @@ async function initTeacherDashboard() {
   }
 
   const delBtn = document.getElementById('teacher-delete-account-btn');
-  const delPw = document.getElementById('teacher-delete-account-password');
+  const delPw  = document.getElementById('teacher-delete-account-password');
   const delMsg = document.getElementById('teacher-delete-account-msg');
-  if (
-    delBtn &&
-    delPw &&
-    typeof getValidTeacherSessionId === 'function' &&
-    typeof teacherAccounts === 'function' &&
-    typeof hashTeacherPassword === 'function' &&
-    typeof purgeTeacherAccountStoredData === 'function'
-  ) {
+  if (delBtn && delPw) {
     delBtn.addEventListener('click', async function () {
       if (delMsg) delMsg.textContent = '';
-      const userId = getValidTeacherSessionId();
-      if (!userId) return;
-      const acc = teacherAccounts()[userId];
-      if (!acc) return;
-      if (
-        !confirm(
-          '교사 계정과 이 기기의 학급·명단 설정·공지를 모두 삭제할까요? 되돌릴 수 없어요.'
-        )
-      ) {
-        return;
-      }
+      if (!confirm('교사 계정·학급·공지를 모두 삭제할까요? 되돌릴 수 없어요.')) return;
       if (!confirm('정말 삭제할까요? 마지막 확인이에요.')) return;
-      const h = await hashTeacherPassword(delPw.value);
-      if (h !== acc.passwordHash) {
-        if (delMsg) delMsg.textContent = '비밀번호가 맞지 않아요.';
-        return;
+      delBtn.disabled = true;
+      const result = await window.deleteTeacherAccountAction(delPw.value);
+      delBtn.disabled = false;
+      if (!result.ok) {
+        if (delMsg) delMsg.textContent = result.error || '삭제할 수 없어요.';
       }
-      purgeTeacherAccountStoredData(userId);
-      delPw.value = '';
-      try {
-        sessionStorage.setItem('emotion-teacher-account-deleted', '1');
-      } catch (e) {}
-      location.reload();
     });
   }
 

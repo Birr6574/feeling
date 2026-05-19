@@ -4,7 +4,7 @@
 =========================== */
 
 async function fetchAllStudents() {
-  var teacherUserId = localStorage.getItem('emotion-checkin-teacher-user');
+  var teacherUserId = _getSessionValue('emotion-checkin-teacher-user');
   if (!teacherUserId) return [];
   var result = await apiCall('getAllStudentsForTeacher', { teacherUserId: teacherUserId });
   if (!result.ok) return [];

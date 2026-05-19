@@ -86,6 +86,22 @@ function initTeacherClassRoomPanel() {
     copyBtn.addEventListener('click', function() { void copyTeacherClassCode(); });
   }
 
+  var regenBtn = document.getElementById('teacher-class-regenerate-btn');
+  if (regenBtn && regenBtn.dataset.wired !== '1') {
+    regenBtn.dataset.wired = '1';
+    regenBtn.addEventListener('click', async function() {
+      if (!confirm('학급 코드를 새로 만들까요? 기존 코드로는 더 이상 연결할 수 없어요. (이미 연결된 학생은 유지)')) return;
+      regenBtn.disabled = true;
+      var room = typeof getClassRoom === 'function' ? getClassRoom() : null;
+      var name = room && room.name ? room.name : '우리 학급';
+      if (typeof setClassRoom === 'function') await setClassRoom(name);
+      regenBtn.disabled = false;
+      renderTeacherClassRoomCard();
+      updateTeacherHeaderClassLabel();
+      setTeacherClassMsg('teacher-class-room-msg', '새 코드가 만들어졌어요.', false);
+    });
+  }
+
   var removeBtn = document.getElementById('teacher-class-remove-btn');
   if (removeBtn && removeBtn.dataset.wired !== '1') {
     removeBtn.dataset.wired = '1';

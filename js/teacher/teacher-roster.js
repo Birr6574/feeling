@@ -11,10 +11,6 @@ function escTeacherRoster(s) {
     .replace(/"/g, '&quot;');
 }
 
-function isTeacherCustomStudentId(id) {
-  return String(id).indexOf('tc-') === 0;
-}
-
 function resetTeacherRosterForm() {
   teacherRosterEditingId = null;
   const ids = [
@@ -34,95 +30,24 @@ function resetTeacherRosterForm() {
   if (submit) submit.textContent = '학생 추가';
 }
 
-function fillTeacherRosterFormFromStudent(s) {
-  teacherRosterEditingId = s.id;
-  const uid = document.getElementById('teacher-roster-userid');
-  const name = document.getElementById('teacher-roster-name');
-  const num = document.getElementById('teacher-roster-number');
-  const gr = document.getElementById('teacher-roster-grade');
-  const cl = document.getElementById('teacher-roster-class');
-  if (uid) {
-    uid.value = (s.userId || '').trim();
-    uid.disabled = !isTeacherCustomStudentId(s.id);
-  }
-  if (name) name.value = (s.name || '').trim();
-  if (num) num.value = (s.number || '').trim();
-  if (gr) gr.value = (s.gradeLabel || '').trim();
-  if (cl) cl.value = (s.classLabel || '').trim();
-  const submit = document.getElementById('teacher-roster-submit');
-  if (submit) submit.textContent = '수정 저장';
-}
+/* 학생 계정 만들기 (Google Sheets API 기반) */
+async function createStudentLoginAccount({ name, studentNumber, gradeLabel, classLabel, userId, password, password2 }) {
+  if (!name || !name.trim()) return { ok: false, error: '이름을 입력해 주세요.' };
+  const uid = (userId || '').trim().toLowerCase();
+  if (!/^[a-z0-9._-]{3,30}$/.test(uid)) return { ok: false, error: '아이디는 영문 소문자·숫자·._- 만 3~30자예요.' };
+  if (!password || password.length < 6) return { ok: false, error: '비밀번호는 6자 이상이에요.' };
+  if (password !== password2) return { ok: false, error: '비밀번호가 서로 달라요.' };
 
-async function submitTeacherRosterForm() {
-  const uidEl = document.getElementById('teacher-roster-userid');
-  const nameEl = document.getElementById('teacher-roster-name');
-  const rawUid = uidEl && !uidEl.disabled ? (uidEl.value || '').trim().toLowerCase() : '';
-  const lockedUid = uidEl && uidEl.disabled ? (uidEl.value || '').trim().toLowerCase() : '';
-  const fields = {
-    userId: uidEl && uidEl.disabled ? lockedUid : rawUid,
-    name: (nameEl && nameEl.value) || '',
-    number: (document.getElementById('teacher-roster-number') || {}).value || '',
-    gradeLabel: (document.getElementById('teacher-roster-grade') || {}).value || '',
-    classLabel: (document.getElementById('teacher-roster-class') || {}).value || '',
-  };
+  var passwordHash = await hashPassword(password);
+  var result = await apiCall('studentSignup', { name: name.trim(), userId: uid, passwordHash: passwordHash });
+  if (!result.ok) return result;
 
-  if (teacherRosterEditingId != null) {
-    const id = teacherRosterEditingId;
-    if (isTeacherCustomStudentId(id)) {
-      const ok = updateTeacherCustomRosterRow(id, {
-        userId: fields.userId,
-        name: fields.name.trim(),
-        number: fields.number.trim(),
-        gradeLabel: fields.gradeLabel.trim(),
-        classLabel: fields.classLabel.trim(),
-      });
-      if (!ok) {
-        alert('이름은 필수예요. 학생 아이디 형식을 확인해 주세요.');
-        return;
-      }
-    } else {
-      if (!fields.name.trim()) {
-        alert('이름을 입력해 주세요.');
-        return;
-      }
-      if (
-        fields.userId &&
-        !/^[a-z0-9._-]{3,30}$/.test(fields.userId)
-      ) {
-        alert('학생 아이디는 영문 소문자·숫자·._- 만 3~30자예요.');
-        return;
-      }
-      if (typeof mergeRosterStudentProfile === 'function') {
-        mergeRosterStudentProfile(id, {
-          name: fields.name.trim(),
-          number: fields.number.trim(),
-          gradeLabel: fields.gradeLabel.trim(),
-          classLabel: fields.classLabel.trim(),
-          userId: fields.userId || undefined,
-        });
-      }
-      const loginId = fields.userId;
-      if (loginId && typeof patchLocalAccount === 'function') {
-        patchLocalAccount(loginId, {
-          name: fields.name.trim(),
-          studentNumber: fields.number.trim(),
-          gradeLabel: fields.gradeLabel.trim(),
-          classLabel: fields.classLabel.trim(),
-        });
-      }
-    }
-    resetTeacherRosterForm();
-    if (typeof refreshDashboard === 'function') await refreshDashboard();
-    return;
+  // 현재 학급이 있으면 자동으로 학급에 연결
+  var room = typeof getClassRoom === 'function' ? getClassRoom() : null;
+  if (room && room.code) {
+    await apiCall('joinClass', { studentUserId: uid, classCode: room.code });
   }
-
-  const res = addTeacherCustomRosterRow(fields);
-  if (!res.ok) {
-    alert(res.error || '추가할 수 없어요.');
-    return;
-  }
-  resetTeacherRosterForm();
-  if (typeof refreshDashboard === 'function') await refreshDashboard();
+  return { ok: true };
 }
 
 function renderTeacherManageList(students) {
@@ -132,7 +57,7 @@ function renderTeacherManageList(students) {
 
   if (!students || students.length === 0) {
     wrap.innerHTML =
-      '<p class="teacher-manage-empty">등록된 학생이 없어요. 위 양식에서 추가하거나 data/students.json 명단을 확인하세요. 로그인만 쓰게 하려면 <strong>학생 계정 생성</strong> 탭을 이용해 주세요.</p>';
+      '<p class="teacher-manage-empty">등록된 학생이 없어요. 학급 코드를 학생에게 알려 주면 학생이 직접 설정에서 연결할 수 있어요. 또는 <strong>학생 계정 생성</strong> 탭에서 교사가 직접 계정을 만들어 줄 수 있어요.</p>';
     return;
   }
 
@@ -143,39 +68,22 @@ function renderTeacherManageList(students) {
   list.forEach(function (s) {
     const row = document.createElement('div');
     row.className = 'teacher-manage-row';
-    const custom = isTeacherCustomStudentId(s.id);
-    const badge = '<span class="teacher-manage-badge">명단</span>';
     const uid = (s.userId || '').trim();
     row.innerHTML = `
       <div class="teacher-manage-row-main">
-        ${badge}
+        <span class="teacher-manage-badge">학생</span>
         <span class="teacher-manage-row-name">${escTeacherRoster(s.name)}</span>
         <span class="teacher-manage-row-meta">${escTeacherRoster(String(s.number || ''))}${uid ? ' · ' + escTeacherRoster(uid) : ''}</span>
       </div>
       <div class="teacher-manage-row-actions">
-        <button type="button" class="teacher-manage-action" data-action="edit">수정</button>
-        <button type="button" class="teacher-manage-action teacher-manage-action--danger" data-action="remove">삭제</button>
+        <button type="button" class="teacher-manage-action teacher-manage-action--danger" data-action="remove">연결 해제</button>
       </div>
     `;
-    const id = s.id;
-    row.querySelector('[data-action="edit"]').onclick = function () {
-      fillTeacherRosterFormFromStudent(
-        students.find(function (x) {
-          return x.id === id;
-        }) || s
-      );
-      row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-    };
-    row.querySelector('[data-action="remove"]').onclick = function () {
-      if (custom) {
-        if (!confirm('이 학생을 목록에서 삭제할까요?')) return;
-        removeTeacherCustomRosterRow(id);
-      } else {
-        if (!confirm('JSON 명단에서 이 학생을 대시보드에 숨길까요? (데이터 파일은 바뀌지 않아요)')) return;
-        hideTeacherJsonStudent(id);
-      }
-      resetTeacherRosterForm();
-      void refreshDashboard();
+    const sid = s.userId || s.id;
+    row.querySelector('[data-action="remove"]').onclick = async function () {
+      if (!confirm(escTeacherRoster(s.name) + ' 학생을 학급에서 연결 해제할까요?')) return;
+      await apiCall('leaveClass', { studentUserId: sid });
+      if (typeof refreshDashboard === 'function') await refreshDashboard();
     };
     wrap.appendChild(row);
   });
@@ -206,24 +114,27 @@ function initTeacherStudentAccountForm() {
     e.preventDefault();
     const errEl = document.getElementById('teacher-acct-error');
     if (errEl) errEl.textContent = '';
-    if (typeof createStudentLoginAccount !== 'function') {
-      if (errEl) errEl.textContent = '계정 기능을 불러오지 못했어요. 페이지를 새로고침해 주세요.';
-      return;
-    }
+    const submitBtn = form.querySelector('[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
     const res = await createStudentLoginAccount({
-      name: (document.getElementById('teacher-acct-name') || {}).value,
-      studentNumber: (document.getElementById('teacher-acct-student-number') || {}).value,
-      gradeLabel: (document.getElementById('teacher-acct-grade') || {}).value,
-      classLabel: (document.getElementById('teacher-acct-class') || {}).value,
-      userId: (document.getElementById('teacher-acct-userid') || {}).value,
-      password: (document.getElementById('teacher-acct-password') || {}).value,
-      password2: (document.getElementById('teacher-acct-password2') || {}).value,
+      name:          (document.getElementById('teacher-acct-name') || {}).value || '',
+      studentNumber: (document.getElementById('teacher-acct-student-number') || {}).value || '',
+      gradeLabel:    (document.getElementById('teacher-acct-grade') || {}).value || '',
+      classLabel:    (document.getElementById('teacher-acct-class') || {}).value || '',
+      userId:        (document.getElementById('teacher-acct-userid') || {}).value || '',
+      password:      (document.getElementById('teacher-acct-password') || {}).value || '',
+      password2:     (document.getElementById('teacher-acct-password2') || {}).value || '',
     });
+
+    if (submitBtn) submitBtn.disabled = false;
+
     if (!res.ok) {
       if (errEl) errEl.textContent = res.error || '만들 수 없어요.';
       return;
     }
     resetTeacherStudentAccountForm();
+    if (errEl) { errEl.textContent = '계정이 만들어졌어요!'; errEl.style.color = '#86efac'; }
     if (typeof refreshDashboard === 'function') await refreshDashboard();
   });
 }
@@ -237,19 +148,34 @@ function updateTeacherRosterClassPageTitle() {
 }
 
 function initTeacherRosterPanel() {
-  const form = document.getElementById('teacher-roster-form');
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      void submitTeacherRosterForm();
-    });
+  // 수동추가 폼은 새 API 구조에서 지원하지 않으므로 숨김
+  const rosterForm = document.getElementById('teacher-roster-form');
+  if (rosterForm) {
+    const card = rosterForm.closest('.teacher-manage-card');
+    if (card) card.style.display = 'none';
   }
   const cancel = document.getElementById('teacher-roster-cancel-edit');
-  if (cancel) {
-    cancel.addEventListener('click', function () {
-      resetTeacherRosterForm();
+  if (cancel) cancel.style.display = 'none';
+
+  // 명단 초기화 버튼
+  const resetBtn = document.getElementById('teacher-roster-reset-btn');
+  if (resetBtn && resetBtn.dataset.wired !== '1') {
+    resetBtn.dataset.wired = '1';
+    resetBtn.addEventListener('click', async function () {
+      const pw = prompt('명단 초기화 비밀번호를 입력하세요.');
+      if (pw === null) return;
+      if (pw !== '3651') { alert('비밀번호가 맞지 않아요.'); return; }
+      if (!confirm('학급의 모든 학생 연결을 해제할까요? 학생 계정과 감정 기록은 유지돼요.')) return;
+      resetBtn.disabled = true;
+      const teacherUserId = _getSessionValue('emotion-checkin-teacher-user');
+      const result = await apiCall('resetClassRoster', { teacherUserId: teacherUserId });
+      resetBtn.disabled = false;
+      if (!result.ok) { alert(result.error || '초기화할 수 없어요.'); return; }
+      alert('명단이 초기화됐어요.');
+      if (typeof refreshDashboard === 'function') await refreshDashboard();
     });
   }
+
   initTeacherStudentAccountForm();
   updateTeacherRosterClassPageTitle();
 }

@@ -32,7 +32,8 @@ function doPost(e) {
       setNotice:              function() { return setNotice(body); },
       getNotice:              function() { return getNotice(body); },
       deleteStudentAccount:   function() { return deleteStudentAccount(body); },
-      deleteTeacherAccount:   function() { return deleteTeacherAccount(body); }
+      deleteTeacherAccount:   function() { return deleteTeacherAccount(body); },
+      resetClassRoster:       function() { return resetClassRoster(body); }
     };
     if (!handlers[action]) return json({ ok: false, error: '알 수 없는 요청이에요.' });
     return json(handlers[action]());
@@ -496,6 +497,24 @@ function deleteTeacherAccount(p) {
       .forEach(function(s) { updateSheetRow('students', s._row, { classId: '' }); });
     deleteSheetRow('classes', cls._row);
   }
+  return { ok: true };
+}
+
+// 학급 명단 초기화 (학생 연결 해제, 계정·기록은 유지)
+function resetClassRoster(p) {
+  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
+  if (!teacherUserId) return { ok: false, error: '교사 아이디가 없어요.' };
+
+  var classes = getSheetRows('classes');
+  var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
+  if (!cls) return { ok: false, error: '학급이 없어요.' };
+
+  var students = getSheetRows('students');
+  students
+    .filter(function(s) { return s.classId === cls.id; })
+    .sort(function(a, b) { return b._row - a._row; })
+    .forEach(function(s) { updateSheetRow('students', s._row, { classId: '' }); });
+
   return { ok: true };
 }
 
