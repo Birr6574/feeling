@@ -68,7 +68,19 @@ window.deleteTeacherAccountAction = async function(password) {
 };
 
 document.addEventListener('DOMContentLoaded', function() {
-  var saved = getValidTeacherSessionId();
+  // 새로고침 여부 감지 (reload면 sessionStorage 세션 무시)
+  var _isReload = false;
+  try {
+    var _nav = performance.getEntriesByType('navigation');
+    _isReload = _nav.length > 0
+      ? _nav[0].type === 'reload'
+      : !!(performance.navigation && performance.navigation.type === 1);
+  } catch (e) {}
+
+  // remember-me(localStorage)는 항상 복원, sessionStorage는 새로고침이 아닐 때만 복원
+  var saved = localStorage.getItem(LS_TEACHER_SESSION_KEY)
+           || (!_isReload ? sessionStorage.getItem(LS_TEACHER_SESSION_KEY) : null);
+
   if (!saved) {
     // 세션 없음 → 로그인 페이지로
     location.href = 'index.html';

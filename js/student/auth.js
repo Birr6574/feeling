@@ -255,11 +255,21 @@ document.addEventListener('DOMContentLoaded', function() {
   wireAuthForms();
   wireDeleteStudentAccount();
 
-  // localStorage(상태유지) 또는 sessionStorage(탭 유지) 에서 세션 복원
-  var saved     = _getSession(LS_SESSION_USER_KEY);
-  var savedName = _getSession(LS_SESSION_NAME_KEY) || '';
+  // 새로고침 여부 감지 (reload면 sessionStorage 세션 무시)
+  var _isReload = false;
+  try {
+    var _nav = performance.getEntriesByType('navigation');
+    _isReload = _nav.length > 0
+      ? _nav[0].type === 'reload'
+      : !!(performance.navigation && performance.navigation.type === 1);
+  } catch (e) {}
+
+  // remember-me(localStorage)는 항상 복원, sessionStorage는 새로고침이 아닐 때만 복원
+  var saved = localStorage.getItem(LS_SESSION_USER_KEY)
+           || (!_isReload ? sessionStorage.getItem(LS_SESSION_USER_KEY) : null);
+  var savedName = (saved && (localStorage.getItem(LS_SESSION_NAME_KEY) || sessionStorage.getItem(LS_SESSION_NAME_KEY))) || '';
+
   if (saved) {
-    // 이미 저장된 세션은 원래 저장소 유지 (remember 플래그 불필요)
     applyStudentSession(saved, savedName, null, !!localStorage.getItem(LS_SESSION_USER_KEY));
     (async function() {
       await loadEmotionsForUser(saved);
