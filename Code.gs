@@ -3,7 +3,7 @@
 // 사용 전 아래 SS_ID 를 본인 스프레드시트 ID로 교체하세요.
 // ===================================================
 
-var SS_ID = 'YOUR_SPREADSHEET_ID'; // ← 여기에 스프레드시트 ID 입력
+var SS_ID = '1pQVq__ff9JZtmijpMgQW6Koa7uQOqrI7EXTrJrCx9lA';
 
 // ------------------------------------
 // 진입점
@@ -67,7 +67,11 @@ function getSheetRows(sheetName) {
   var headers = data[0];
   return data.slice(1).map(function(row, i) {
     var obj = { _row: i + 2 };
-    headers.forEach(function(h, j) { obj[h] = row[j]; });
+    headers.forEach(function(h, j) {
+      // Google Sheets가 숫자처럼 생긴 값을 number로 변환하는 것을 방지
+      var v = row[j];
+      obj[h] = (v === null || v === undefined) ? '' : String(v);
+    });
     return obj;
   });
 }

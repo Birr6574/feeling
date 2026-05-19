@@ -34,12 +34,22 @@ function closeModal() {
 }
 
 // 감정 저장하기
+var _saveEmoLock = false;
 async function saveEmo() {
-  const note = document.getElementById('note-input').value.trim();
-  await saveEmotion(selectedEmo, selectedLabel, note);
-  closeModal();
-  renderAll();
-  showScreen('home');
+  if (_saveEmoLock) return;
+  _saveEmoLock = true;
+  const btn = document.querySelector('.save-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const note = document.getElementById('note-input').value.trim();
+    await saveEmotion(selectedEmo, selectedLabel, note);
+    closeModal();
+    renderAll();
+    showScreen('home');
+  } finally {
+    _saveEmoLock = false;
+    if (btn) btn.disabled = false;
+  }
 }
 
 // 홈 화면 오늘 기분 카드 업데이트
