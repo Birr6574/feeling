@@ -34,7 +34,7 @@ function resetTeacherRosterForm() {
 async function createStudentLoginAccount({ name, studentNumber, gradeLabel, classLabel, userId, password, password2 }) {
   if (!name || !name.trim()) return { ok: false, error: '이름을 입력해 주세요.' };
   const uid = (userId || '').trim().toLowerCase();
-  if (!/^[a-z0-9._-]{3,30}$/.test(uid)) return { ok: false, error: '아이디는 영문 소문자·숫자·._- 만 3~30자예요.' };
+  if (!/^[a-z0-9._-]{3,30}$/.test(uid)) return { ok: false, error: '학번는 영문 소문자·숫자·._- 만 3~30자예요.' };
   if (!password || password.length < 6) return { ok: false, error: '비밀번호는 6자 이상이에요.' };
   if (password !== password2) return { ok: false, error: '비밀번호가 서로 달라요.' };
 

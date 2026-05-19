@@ -34,7 +34,7 @@
         <button type="button" class="teacher-auth-tab" id="teacher-tab-signup">회원가입</button>
       </div>
       <form id="form-teacher-login" class="teacher-auth-form" autocomplete="on">
-        <label class="teacher-auth-label" for="teacher-login-userid">아이디 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
+        <label class="teacher-auth-label" for="teacher-login-userid">학번 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
         <input class="teacher-auth-input" id="teacher-login-userid" autocomplete="username" required>
         <label class="teacher-auth-label" for="teacher-login-password">비밀번호</label>
         <input class="teacher-auth-input" type="password" id="teacher-login-password" autocomplete="current-password" required>
@@ -44,7 +44,7 @@
       <form id="form-teacher-signup" class="teacher-auth-form" style="display:none;" autocomplete="on">
         <label class="teacher-auth-label" for="teacher-signup-name">이름</label>
         <input class="teacher-auth-input" id="teacher-signup-name" maxlength="30" placeholder="예: 김선생" required>
-        <label class="teacher-auth-label" for="teacher-signup-userid">아이디 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
+        <label class="teacher-auth-label" for="teacher-signup-userid">학번 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
         <input class="teacher-auth-input" id="teacher-signup-userid" maxlength="30" autocomplete="username" required>
         <label class="teacher-auth-label" for="teacher-signup-password">비밀번호 <span class="teacher-auth-hint">(6자 이상)</span></label>
         <input class="teacher-auth-input" type="password" id="teacher-signup-password" autocomplete="new-password" required>
@@ -247,7 +247,7 @@
 
         <div class="teacher-settings-subpanel" data-settings-panel="accounts" id="teacher-settings-panel-accounts">
           <h3 class="teacher-manage-title teacher-settings-section-title">학생 계정 생성</h3>
-          <p class="teacher-manage-hint">학생 앱에서 쓸 아이디·비밀번호와 프로필을 정합니다. 저장은 이 브라우저에만 되며, 학생 앱과 같은 브라우저를 쓰면 바로 로그인할 수 있어요.</p>
+          <p class="teacher-manage-hint">학생 앱에서 쓸 학번·비밀번호와 프로필을 정합니다. 저장은 이 브라우저에만 되며, 학생 앱과 같은 브라우저를 쓰면 바로 로그인할 수 있어요.</p>
           <div class="teacher-manage-card teacher-manage-card--spacious">
             <form id="form-teacher-create-student-account" class="teacher-roster-form teacher-settings-form" autocomplete="off">
               <div class="teacher-field teacher-field--full">
@@ -269,7 +269,7 @@
                 <input class="teacher-roster-input" id="teacher-acct-student-number" maxlength="20" placeholder="예: 15 또는 15번" required>
               </div>
               <div class="teacher-field teacher-field--full">
-                <label class="teacher-roster-label" for="teacher-acct-userid">로그인 아이디 <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">(영문 소문자·숫자 3~30자)</span></label>
+                <label class="teacher-roster-label" for="teacher-acct-userid">로그인 학번 <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">(영문 소문자·숫자 3~30자)</span></label>
                 <input class="teacher-roster-input" id="teacher-acct-userid" maxlength="30" autocomplete="username" required>
               </div>
               <div class="teacher-settings-field-grid teacher-settings-field-grid--2">
@@ -328,7 +328,7 @@
               <form id="teacher-roster-form" class="teacher-roster-form teacher-settings-form" autocomplete="off">
                 <p class="teacher-roster-manual-heading teacher-roster-manual-heading--in-card" aria-label="수동으로 학생 추가">수동추가</p>
                 <div class="teacher-field teacher-field--full">
-                  <label class="teacher-roster-label" for="teacher-roster-userid">아이디 <span class="teacher-roster-opt">(선택, 로그인 연동 시)</span></label>
+                  <label class="teacher-roster-label" for="teacher-roster-userid">학번 <span class="teacher-roster-opt">(선택, 로그인 연동 시)</span></label>
                   <input class="teacher-roster-input" id="teacher-roster-userid" maxlength="30" placeholder="영문 소문자·숫자 3~30자" autocomplete="off">
                 </div>
                 <div class="teacher-field teacher-field--full">
