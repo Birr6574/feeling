@@ -1,0 +1,714 @@
+﻿/* ===========================
+   css/teacher-base.css
+   교사 대시보드 — 리셋·헤더·요약·목록·상세(기록) 기본 스타일
+   로드 순서: base → responsive → insight → auth → shell → teacher-theme-light
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+/* fixed 패널에 transform 애니메이션을 쓰면 일부 브라우저에서 위치가 어긋날 수 있어 opacity만 사용 */
+@keyframes teacherDetailSheetUp {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html.teacher-page {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+html.teacher-page,
+body.teacher-body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+html.teacher-page:not([data-teacher-theme='light']) {
+  color-scheme: dark;
+}
+
+/* body: 학생 앱과 달리 flex 중앙 정렬 없음 */
+body.teacher-body {
+  background: #0b0b14;
+  color: #f1f5f9;
+  display: block;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 0 max(40px, env(safe-area-inset-bottom, 0px));
+  margin: 0;
+  font-family: 'Nunito', sans-serif;
+}
+
+.teacher-app-shell {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* 헤더 */
+.teacher-header {
+  background: #111118;
+  border-bottom: 1px solid #2a2a3c;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) 0 16px;
+  margin-bottom: 24px;
+}
+
+.header-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.header-sub {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.header-sync {
+  font-size: 11px;
+  color: #c4b5fd;
+  margin: 6px 0 0;
+  font-weight: 600;
+}
+
+.back-btn {
+  font-size: 13px;
+  color: #a78bfa;
+  text-decoration: none;
+  background: #1e1832;
+  border: 1px solid #a78bfa44;
+  border-radius: 10px;
+  padding: 8px 14px;
+  font-weight: 700;
+  transition: background 0.2s;
+}
+
+.back-btn:hover {
+  background: #2a2048;
+}
+
+/* 상세 패널 상단: 학생 앱 홈 메시지 */
+.broadcast-in-detail {
+  margin-bottom: 20px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid #252535;
+  flex-shrink: 0;
+}
+
+.broadcast-in-detail .broadcast-hint {
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.broadcast-in-detail .broadcast-input {
+  min-width: 0;
+}
+
+.broadcast-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+
+.broadcast-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.broadcast-input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #1a1a26;
+  color: #e8e8f0;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+}
+
+.broadcast-input::placeholder {
+  color: #555;
+}
+
+.broadcast-btn {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  background: #5b4a9e;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+.broadcast-btn:hover {
+  background: #6f5cb8;
+}
+
+.broadcast-btn.ghost {
+  background: #252535;
+  color: #aaa;
+}
+
+.broadcast-btn.ghost:hover {
+  background: #333;
+  color: #ccc;
+}
+
+/* 요약 카드 4개 */
+.summary-section {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.summary-card {
+  background: #16161f;
+  border: 1px solid #2a2a3d;
+  border-radius: 18px;
+  padding: 20px 16px;
+  text-align: center;
+}
+
+.summary-card.alert-card {
+  border-color: #f472b644;
+  background: #1e1626;
+}
+
+.summary-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.summary-num {
+  font-size: 32px;
+  font-weight: 800;
+  color: #a78bfa;
+  margin-bottom: 4px;
+}
+
+.alert-card .summary-num {
+  color: #f472b6;
+}
+
+.summary-lbl {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 메인 2컬럼 레이아웃 */
+.main-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding-left: max(24px, env(safe-area-inset-left, 0px));
+  padding-right: max(24px, env(safe-area-inset-right, 0px));
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 20px;
+}
+
+/* 왼쪽: 학생 목록 섹션 */
+.student-list-section {
+  background: #16161f;
+  border: 1px solid #2a2a3d;
+  border-radius: 20px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0;
+}
+
+.teacher-student-list-hint {
+  display: none;
+}
+
+.filter-select {
+  background: #252535;
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: #ccc;
+  font-size: 12px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* 모바일: 상단 이름 버튼 → 개인정보 시트 */
+.detail-profile-trigger {
+  display: none;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  border: 1px solid #3d3d52;
+  border-radius: 14px;
+  background: #16161f;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  text-align: left;
+  color: #e8e8f0;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.detail-profile-trigger:hover {
+  background: #1e1e2a;
+  border-color: #a78bfa44;
+}
+
+.detail-profile-trigger:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 2px;
+}
+
+.detail-profile-trigger-emo {
+  font-size: 32px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.detail-profile-trigger-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.detail-profile-trigger-name {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.detail-profile-trigger-hint {
+  font-size: 11px;
+  color: #a8a8bc;
+  font-weight: 600;
+}
+
+.detail-profile-trigger-chevron {
+  font-size: 22px;
+  color: #a78bfa;
+  font-weight: 300;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.detail-back-to-list {
+  display: none;
+}
+
+.detail-profile-stack {
+  display: block;
+}
+
+.detail-profile-modal-backdrop {
+  display: none;
+}
+
+.detail-profile-stack-inner {
+  position: relative;
+}
+
+.detail-profile-modal-head {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #252535;
+}
+
+.detail-profile-modal-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.detail-profile-modal-close {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 12px;
+  background: #252535;
+  color: #ccc;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+.detail-profile-modal-close:hover {
+  background: #333;
+  color: #fff;
+}
+
+/* 학생 카드 */
+.student-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  margin-bottom: 6px;
+}
+
+.student-card:hover {
+  background: #252535;
+}
+
+.student-card.active {
+  background: #1e1832;
+  border: 1px solid #a78bfa44;
+}
+
+.student-card.no-record {
+  opacity: 0.5;
+}
+
+.s-emo {
+  font-size: 28px;
+  flex-shrink: 0;
+  width: 38px;
+  text-align: center;
+}
+
+.s-info {
+  flex: 1;
+}
+
+.s-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8e8f0;
+  margin: 0 0 2px;
+}
+
+.s-name-meta {
+  font-weight: 500;
+  font-size: 12px;
+  color: #a8a8bc;
+}
+
+.s-sub {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.s-alert {
+  font-size: 16px;
+}
+
+/* 오른쪽: 상세 패널 */
+.detail-panel {
+  background: #1a1a26;
+  border: 1px solid #252535;
+  border-radius: 20px;
+  padding: 24px;
+  min-height: 500px;
+}
+
+.detail-empty {
+  height: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #444;
+  font-size: 15px;
+  text-align: center;
+  line-height: 1.8;
+}
+
+/* 상세 헤더 */
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #252535;
+}
+
+.detail-avatar {
+  font-size: 40px;
+  width: 56px;
+  height: 56px;
+  background: #252535;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.detail-meta {
+  font-size: 13px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.detail-edit-open-btn {
+  width: 100%;
+  margin-bottom: 16px;
+  padding: 11px 16px;
+  border: 1px solid #3d3d52;
+  border-radius: 12px;
+  background: #1a1a26;
+  color: #c4b5fd;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.detail-edit-open-btn:hover {
+  background: #252535;
+  border-color: #a78bfa66;
+}
+
+.detail-edit-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: #16161f;
+  border-radius: 14px;
+  border: 1px solid #252535;
+}
+
+.detail-edit-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0 0 14px;
+  line-height: 1.5;
+}
+
+.detail-edit-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #a8a8bc;
+  margin: 10px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.detail-edit-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #2e2e40;
+  background: #0f0f16;
+  color: #e8e8f0;
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+}
+
+.detail-edit-input:focus {
+  outline: none;
+  border-color: #a78bfa88;
+}
+
+.detail-save-btn {
+  margin-top: 16px;
+  width: 100%;
+  padding: 11px 16px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.detail-save-btn:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.detail-save-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+/* 오늘 감정 */
+.detail-today {
+  margin-bottom: 24px;
+}
+
+.detail-section-lbl {
+  font-size: 12px;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px;
+}
+
+.today-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #252535;
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 8px;
+}
+
+.today-badge span:first-child {
+  font-size: 24px;
+}
+
+.today-badge span:last-child {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8e8f0;
+}
+
+.detail-record-at {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0 0 8px;
+  font-weight: 600;
+}
+
+.detail-note {
+  font-size: 13px;
+  color: #a8a8bc;
+  font-style: italic;
+  margin: 0;
+  padding: 8px 12px;
+  background: #16161f;
+  border-radius: 10px;
+  border-left: 3px solid #a78bfa44;
+}
+
+/* 이번 주 감정 */
+.detail-week {
+  margin-bottom: 24px;
+}
+
+.week-emo-row {
+  display: flex;
+  gap: 8px;
+}
+
+.week-emo-item {
+  flex: 1;
+  text-align: center;
+  background: #252535;
+  border-radius: 10px;
+  padding: 8px 4px;
+}
+
+.week-emo-item .w-emo {
+  font-size: 20px;
+  display: block;
+}
+
+.week-emo-item .w-day {
+  font-size: 10px;
+  color: #9ca3af;
+  display: block;
+  margin-top: 4px;
+}
+
+/* 최근 기록 */
+.d-log-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid #1e1e2e;
+}
+
+.d-log-item:last-child {
+  border-bottom: none;
+}
+
+.d-log-emo {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.d-log-info {
+  flex: 1;
+}
+
+.d-log-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #e8e8f0;
+  margin: 0 0 2px;
+}
+
+.d-log-note {
+  font-size: 12px;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.d-log-date {
+  font-size: 11px;
+  color: #7c7c92;
+}
+
