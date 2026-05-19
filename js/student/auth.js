@@ -2,12 +2,19 @@
    js/student/auth.js
    통합 로그인·회원가입 (학생·교사 공통)
    로그인 후 역할에 따라 학생 화면 또는 teacher.html 으로 이동
+   상태유지 체크 시 → localStorage (영구)
+   미체크 시 → sessionStorage (탭 닫거나 새로고침하면 로그아웃)
 =========================== */
 
 var LS_SESSION_USER_KEY = 'emotion-checkin-logged-user';
 var LS_SESSION_NAME_KEY = 'emotion-checkin-user-name';
 
 var currentLoginId = null;
+
+/* sessionStorage / localStorage 둘 다에서 값 읽기 */
+function _getSession(key) {
+  return localStorage.getItem(key) || sessionStorage.getItem(key) || null;
+}
 
 function setAuthError(elId, msg) {
   var el = document.getElementById(elId);
@@ -43,18 +50,21 @@ function showStudentPhone() {
   if (typeof initStudentStatusBarClock === 'function') initStudentStatusBarClock();
 }
 
-function applyStudentSession(userId, name, classInfo) {
+/* remember=true → localStorage(영구), false → sessionStorage(탭 유지) */
+function applyStudentSession(userId, name, classInfo, remember) {
   currentLoginId = userId;
-  localStorage.setItem(LS_SESSION_USER_KEY, userId);
-  localStorage.setItem(LS_SESSION_NAME_KEY, name || '학생');
+  var store = remember ? localStorage : sessionStorage;
+  store.setItem(LS_SESSION_USER_KEY, userId);
+  store.setItem(LS_SESSION_NAME_KEY, name || '학생');
   updateHomeAndSettings(name, userId);
   if (typeof setStudentClassCache === 'function') setStudentClassCache(classInfo || null);
   if (typeof updateStudentClassLinkUiAll === 'function') updateStudentClassLinkUiAll();
 }
 
-function applyTeacherSession(userId, name, classRoom) {
-  localStorage.setItem('emotion-checkin-teacher-user', userId);
-  localStorage.setItem('emotion-checkin-teacher-name', name || '');
+function applyTeacherSession(userId, name, classRoom, remember) {
+  var store = remember ? localStorage : sessionStorage;
+  store.setItem('emotion-checkin-teacher-user', userId);
+  store.setItem('emotion-checkin-teacher-name', name || '');
   if (typeof setTeacherClassCache === 'function') setTeacherClassCache(classRoom || null);
 }
 
@@ -62,6 +72,8 @@ function clearSession() {
   currentLoginId = null;
   localStorage.removeItem(LS_SESSION_USER_KEY);
   localStorage.removeItem(LS_SESSION_NAME_KEY);
+  sessionStorage.removeItem(LS_SESSION_USER_KEY);
+  sessionStorage.removeItem(LS_SESSION_NAME_KEY);
   if (typeof setStudentClassCache === 'function') setStudentClassCache(null);
   if (typeof updateStudentClassLinkUiAll === 'function') updateStudentClassLinkUiAll();
 }
@@ -110,8 +122,9 @@ function wireAuthForms() {
       try { userId = validateUserId(document.getElementById('login-userid').value); }
       catch (err) { setAuthError('auth-error-login', err.message); return; }
 
-      var password  = document.getElementById('login-password').value;
-      var submitBtn = formLogin.querySelector('[type="submit"]');
+      var password    = document.getElementById('login-password').value;
+      var rememberMe  = !!(document.getElementById('login-remember') || {}).checked;
+      var submitBtn   = formLogin.querySelector('[type="submit"]');
       if (submitBtn) submitBtn.disabled = true;
 
       var passwordHash = await hashPassword(password);
@@ -125,20 +138,20 @@ function wireAuthForms() {
       }
 
       if (result.role === 'teacher') {
-        applyTeacherSession(result.userId, result.name, result.classRoom || null);
+        applyTeacherSession(result.userId, result.name, result.classRoom || null, rememberMe);
         location.href = 'teacher.html';
         return;
       }
 
       // 학생
-      applyStudentSession(result.userId, result.name, result.classInfo || null);
+      applyStudentSession(result.userId, result.name, result.classInfo || null, rememberMe);
       await loadEmotionsForUser(result.userId);
       if (result.classInfo) await loadNoticeForStudent(result.userId);
       onAuthOk();
     });
   }
 
-  // 회원가입
+  // 회원가입 (상태유지 없이 항상 sessionStorage — 가입 직후는 그 기기에서 유지)
   var formSignup = document.getElementById('form-signup');
   if (formSignup) {
     formSignup.addEventListener('submit', async function(e) {
@@ -174,16 +187,16 @@ function wireAuthForms() {
       if (!result.ok) { setAuthError('auth-error-signup', result.error || '가입할 수 없어요.'); return; }
 
       if (result.role === 'teacher') {
-        applyTeacherSession(result.userId, result.name, null);
+        applyTeacherSession(result.userId, result.name, null, false);
         location.href = 'teacher.html';
         return;
       }
 
-      // 학생 가입 완료 → 바로 로그인
+      // 학생 가입 완료 → 바로 로그인 (sessionStorage)
       formSignup.reset();
       var codeWrap = document.getElementById('signup-teacher-code-wrap');
       if (codeWrap) codeWrap.style.display = 'none';
-      applyStudentSession(result.userId, result.name, null);
+      applyStudentSession(result.userId, result.name, null, false);
       await loadEmotionsForUser(result.userId);
       onAuthOk();
     });
@@ -199,7 +212,7 @@ function wireDeleteStudentAccount() {
   if (!btn || !pw) return;
   btn.addEventListener('click', async function() {
     if (msg) msg.textContent = '';
-    var loginId = currentLoginId || (localStorage.getItem(LS_SESSION_USER_KEY) || '').trim();
+    var loginId = currentLoginId || (_getSession(LS_SESSION_USER_KEY) || '').trim();
     if (!loginId) return;
     if (!confirm('계정과 감정 기록을 모두 삭제할까요? 되돌릴 수 없어요.')) return;
     if (!confirm('정말 삭제할까요? 마지막 확인이에요.')) return;
@@ -242,10 +255,12 @@ document.addEventListener('DOMContentLoaded', function() {
   wireAuthForms();
   wireDeleteStudentAccount();
 
-  var saved     = localStorage.getItem(LS_SESSION_USER_KEY);
-  var savedName = localStorage.getItem(LS_SESSION_NAME_KEY) || '';
+  // localStorage(상태유지) 또는 sessionStorage(탭 유지) 에서 세션 복원
+  var saved     = _getSession(LS_SESSION_USER_KEY);
+  var savedName = _getSession(LS_SESSION_NAME_KEY) || '';
   if (saved) {
-    applyStudentSession(saved, savedName, null);
+    // 이미 저장된 세션은 원래 저장소 유지 (remember 플래그 불필요)
+    applyStudentSession(saved, savedName, null, !!localStorage.getItem(LS_SESSION_USER_KEY));
     (async function() {
       await loadEmotionsForUser(saved);
       await loadNoticeForStudent(saved);

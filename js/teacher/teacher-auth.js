@@ -8,13 +8,16 @@
 var LS_TEACHER_SESSION_KEY = 'emotion-checkin-teacher-user';
 var LS_TEACHER_NAME_KEY    = 'emotion-checkin-teacher-name';
 
+/* localStorage(상태유지) 또는 sessionStorage(탭 유지) 둘 다 확인 */
 function getValidTeacherSessionId() {
-  return localStorage.getItem(LS_TEACHER_SESSION_KEY) || null;
+  return localStorage.getItem(LS_TEACHER_SESSION_KEY) || sessionStorage.getItem(LS_TEACHER_SESSION_KEY) || null;
 }
 
 function clearTeacherSession() {
   localStorage.removeItem(LS_TEACHER_SESSION_KEY);
   localStorage.removeItem(LS_TEACHER_NAME_KEY);
+  sessionStorage.removeItem(LS_TEACHER_SESSION_KEY);
+  sessionStorage.removeItem(LS_TEACHER_NAME_KEY);
   if (typeof setTeacherClassCache === 'function') setTeacherClassCache(null);
 }
 
@@ -29,7 +32,7 @@ function showTeacherAppShell() {
 
 function refreshTeacherSessionLabel() {
   var el   = document.getElementById('teacher-session-label');
-  var name = localStorage.getItem(LS_TEACHER_NAME_KEY) || '';
+  var name = localStorage.getItem(LS_TEACHER_NAME_KEY) || sessionStorage.getItem(LS_TEACHER_NAME_KEY) || '';
   if (el) el.textContent = name ? name + ' · ' : '';
 }
 
