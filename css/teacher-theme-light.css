@@ -1,0 +1,655 @@
+/* 교사 대시보드 라이트 테마 — html.teacher-page[data-teacher-theme="light"] */
+
+html.teacher-page[data-teacher-theme='light'] body.teacher-body {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-gate {
+  background: #f1f5f9;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-card {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.08);
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-title,
+html.teacher-page[data-teacher-theme='light'] .header-title,
+html.teacher-page[data-teacher-theme='light'] .section-title,
+html.teacher-page[data-teacher-theme='light'] .detail-name,
+html.teacher-page[data-teacher-theme='light'] .insight-modal-title,
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-title,
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-title,
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-class-page-title {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-manual-heading {
+  color: #6d28d9;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-manual-heading--in-card {
+  border-bottom-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] #teacher-auth-post-delete-hint.teacher-auth-msg {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-lead,
+html.teacher-page[data-teacher-theme='light'] .header-sub,
+html.teacher-page[data-teacher-theme='light'] .summary-lbl,
+html.teacher-page[data-teacher-theme='light'] .detail-meta,
+html.teacher-page[data-teacher-theme='light'] .detail-section-lbl,
+html.teacher-page[data-teacher-theme='light'] .broadcast-hint,
+html.teacher-page[data-teacher-theme='light'] .teacher-student-list-hint,
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-sub,
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-hint,
+html.teacher-page[data-teacher-theme='light'] .teacher-group-page-lead {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-header {
+  background: #fff;
+  border-bottom-color: #e2e8f0;
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.04);
+}
+
+html.teacher-page[data-teacher-theme='light'] .header-sync {
+  color: #6366f1;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-desk-tab {
+  background: #fff;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-desk-tab:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-desk-tab.is-active {
+  background: #f5f3ff;
+  border-color: #a78bfa;
+  color: #4c1d95;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-subtab {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-subtab:hover {
+  color: #5b21b6;
+  border-color: #c4b5fd;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-subtab.is-active {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .summary-card,
+html.teacher-page[data-teacher-theme='light'] .student-list-section,
+html.teacher-page[data-teacher-theme='light'] .detail-panel,
+html.teacher-page[data-teacher-theme='light'] .teacher-broadcast-panel-card,
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-card,
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-card,
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-row,
+html.teacher-page[data-teacher-theme='light'] .teacher-group-list-row,
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-row {
+  background: #fff;
+  border-color: #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-subnav--segmented {
+  background: #eef2ff;
+  border-color: #e0e7ff;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-subnav--segmented
+  .teacher-settings-subtab.is-active {
+  background: #fff;
+  border: 1px solid #e0e7ff;
+  box-shadow: 0 1px 3px rgba(99, 102, 241, 0.12);
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-subnav--segmented .teacher-settings-subtab {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-subnav--segmented
+  .teacher-settings-subtab:hover {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-lead {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-page-title,
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-label,
+html.teacher-page[data-teacher-theme='light'] .teacher-group-list-name {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-section-heading {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-bar-wrap {
+  background: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-row {
+  background: #f8fafc;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-list-row {
+  background: #f8fafc;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-btn {
+  background: #5b21b6;
+  color: #fff;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-btn:hover {
+  background: #6d28d9;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-btn.ghost {
+  background: #e2e8f0;
+  color: #334155;
+  border: 1px solid #cbd5e1;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-btn.ghost:hover {
+  background: #cbd5e1;
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-submit {
+  background: #5b21b6;
+  color: #fff;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-submit:hover {
+  background: #6d28d9;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-btn {
+  background: #ede9fe;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-btn:hover {
+  background: #ddd6fe;
+  border-color: #a78bfa;
+}
+
+html.teacher-page[data-teacher-theme='light'] .summary-num {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .alert-card .summary-num {
+  color: #db2777;
+}
+
+html.teacher-page[data-teacher-theme='light'] .student-card {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .student-card:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+html.teacher-page[data-teacher-theme='light'] .student-card.active {
+  background: #ede9fe;
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 1px rgba(167, 139, 250, 0.35);
+}
+
+html.teacher-page[data-teacher-theme='light'] .student-card.no-record {
+  opacity: 0.72;
+}
+
+html.teacher-page[data-teacher-theme='light'] .s-name,
+html.teacher-page[data-teacher-theme='light'] .s-name-text {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .s-name-meta,
+html.teacher-page[data-teacher-theme='light'] .s-num {
+  color: #64748b !important;
+}
+
+html.teacher-page[data-teacher-theme='light'] .s-sub {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-empty {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-meta {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-section-lbl {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-avatar {
+  background: #ede9fe;
+  border: 1px solid #e9d5ff;
+}
+
+html.teacher-page[data-teacher-theme='light'] .today-badge {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .today-badge span:last-child {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-record-at {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-note {
+  background: #f8fafc;
+  color: #334155;
+  border-left-color: #c4b5fd;
+}
+
+html.teacher-page[data-teacher-theme='light'] .week-emo-item {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .week-emo-item .w-day {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .d-log-item {
+  border-bottom-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .d-log-label {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .d-log-note {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .d-log-date {
+  color: #94a3b8;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-header {
+  border-bottom-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .filter-select {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .filter-select:focus {
+  border-color: #a78bfa;
+  outline: 2px solid rgba(167, 139, 250, 0.35);
+  outline-offset: 0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-input,
+html.teacher-page[data-teacher-theme='light'] .broadcast-textarea,
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-input {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .broadcast-textarea:focus {
+  border-color: #a78bfa;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-broadcast-input-label {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-broadcast-panel-title {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-modal {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-modal-head {
+  border-bottom-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-block-title {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-block-desc {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-overlay {
+  background: rgba(15, 23, 42, 0.45);
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-modal {
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.12);
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-close {
+  background: #f1f5f9;
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-graph-bar-wrap {
+  background: #e2e8f0;
+  border-color: #cbd5e1;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-graph-bar {
+  box-shadow: none;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-graph-count {
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-graph-empty {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-nav-btn {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-nav-btn:hover {
+  background: #f8fafc;
+  border-color: #a78bfa;
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-label {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-weekdays {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-cell {
+  background: #fff;
+  border-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .insight-cal-cell:hover:not(.insight-cal-out):not(.insight-cal-disabled) {
+  background: #f8fafc;
+  border-color: #c4b5fd;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-cell.insight-cal-today {
+  border-color: #a78bfa;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-cell.insight-cal-selected {
+  border-color: #7c3aed;
+  background: #ede9fe;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-cal-cell .insight-cal-daynum {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-detail {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-head {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-entry {
+  border-bottom-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-entry-label {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-entry-time {
+  color: #94a3b8;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-entry-note {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .insight-day-placeholder,
+html.teacher-page[data-teacher-theme='light'] .insight-day-empty {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-bar-fill {
+  background: linear-gradient(90deg, #5b21b6, #8b5cf6);
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-count {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-group-chart-pct {
+  color: #94a3b8;
+}
+
+html.teacher-page[data-teacher-theme='light'] .detail-panel.detail-panel--sheet-open {
+  background: #fff;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-mobile-tabbar {
+  background: rgba(255, 255, 255, 0.96);
+  border-top-color: #e2e8f0;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-mtab {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-mtab.is-active {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .back-btn {
+  background: #f1f5f9;
+  border-color: #c4b5fd;
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .toggle:not(.on) {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.12);
+}
+
+html.teacher-page[data-teacher-theme='light'] .toggle:not(.on)::after {
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.25);
+}
+
+html.teacher-page[data-teacher-theme='light'] .toggle.on {
+  border-color: #a78bfa;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 0 0 1px rgba(109, 40, 217, 0.25),
+    0 2px 12px rgba(109, 40, 217, 0.3);
+}
+
+@media (max-width: 900px) {
+  html.teacher-page[data-teacher-theme='light'] .detail-back-to-list {
+    background: #ede9fe;
+    border-color: #c4b5fd;
+    color: #5b21b6;
+  }
+
+  html.teacher-page[data-teacher-theme='light'] .detail-back-to-list:hover {
+    background: #ddd6fe;
+    border-color: #a78bfa;
+  }
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-empty {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-subtitle {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-field .teacher-roster-label {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-label {
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-opt {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-sub strong {
+  color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-class-room-line {
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-class-room-line .teacher-class-room-k,
+html.teacher-page[data-teacher-theme='light'] p.teacher-class-room-k {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-class-room-line strong,
+html.teacher-page[data-teacher-theme='light'] #teacher-class-room-name {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-class-code-box {
+  color: #5b21b6;
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-class-code-box .teacher-class-code-text {
+  color: #5b21b6;
+  -webkit-text-fill-color: #5b21b6;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  .teacher-class-room-line {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  .teacher-class-room-line
+  .teacher-class-room-k,
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  p.teacher-class-room-k {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  .teacher-class-room-line
+  strong,
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  #teacher-class-room-name {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light']
+  .teacher-settings-card.teacher-class-room-card
+  #teacher-class-room-active
+  #teacher-class-room-code.teacher-class-code-box {
+  color: #5b21b6;
+  -webkit-text-fill-color: #5b21b6;
+  background: #f5f3ff;
+  border-color: #c4b5fd;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-auth-msg:not(.teacher-auth-msg--error) {
+  color: #475569;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-manage-row-meta {
+  color: #64748b;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-toggle-lbl {
+  color: #334155;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-settings-row-title {
+  color: #0f172a;
+}
+
+html.teacher-page[data-teacher-theme='light'] .teacher-roster-input:focus,
+html.teacher-page[data-teacher-theme='light'] .broadcast-input:focus {
+  border-color: #8b5cf6;
+  outline: 2px solid rgba(139, 92, 246, 0.22);
+  outline-offset: 0;
+}

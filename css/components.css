@@ -1,0 +1,1029 @@
+/* ===========================
+   css/components.css
+   카드, 버튼, 네비게이션 등 부품 스타일
+=========================== */
+
+/* 오늘 감정 큰 카드 */
+.big-card {
+  background: linear-gradient(135deg, #1e1e2e, #252535);
+  border-radius: 24px;
+  padding: 20px;
+  margin-bottom: 14px;
+  border: 1px solid #2e2e42;
+}
+
+.big-card .emo-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.big-emo {
+  font-size: 52px;
+  line-height: 1;
+}
+
+.emo-info h2 {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 4px;
+}
+
+.emo-info p {
+  font-size: 12px;
+  color: #888;
+  margin: 0;
+}
+
+.emo-tag {
+  display: inline-block;
+  background: #2e2e42;
+  color: #aaa;
+  font-size: 11px;
+  border-radius: 8px;
+  padding: 3px 10px;
+  margin-top: 8px;
+}
+
+/* 최근 기록 카드 */
+.log-card {
+  background: #1a1a26;
+  border-radius: 16px;
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid #252535;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.log-emo {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.log-info {
+  flex: 1;
+}
+
+.log-info .log-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #e8e8f0;
+  margin: 0 0 2px;
+}
+
+.log-info .log-sub {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+}
+
+.log-time {
+  font-size: 11px;
+  color: #555;
+  text-align: right;
+}
+
+/* 기록 목록 아이템 */
+.hist-item {
+  background: #1a1a26;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  border: 1px solid #252535;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hist-date {
+  font-size: 10px;
+  color: #666;
+  background: #22223a;
+  padding: 3px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+/* 통계 카드 */
+.stat-card {
+  background: #1a1a26;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 14px;
+  border: 1px solid #252535;
+}
+
+.stat-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #888;
+  margin: 0 0 14px;
+}
+
+.stats-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.stats-mini {
+  flex: 1;
+  background: #1e1e2e;
+  border-radius: 14px;
+  padding: 14px;
+  text-align: center;
+  border: 1px solid #252535;
+}
+
+/* 주간 차트 */
+.week-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+  height: 70px;
+}
+
+.bar-wrap {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.bar {
+  width: 100%;
+  border-radius: 6px 6px 0 0;
+}
+
+.bar-lbl {
+  font-size: 10px;
+  color: #666;
+}
+
+/* 감정 비율 바 */
+.ratio-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.ratio-emo {
+  font-size: 18px;
+  width: 28px;
+  text-align: center;
+}
+
+.ratio-bar-bg {
+  flex: 1;
+  height: 8px;
+  background: #2a2a38;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.ratio-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.ratio-pct {
+  font-size: 12px;
+  color: #888;
+  min-width: 30px;
+  text-align: right;
+}
+
+.stat-cal-desc {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.4;
+  margin: -8px 0 12px;
+}
+
+/* 통계 — 감정 달력 */
+.student-cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.student-cal-nav-btn {
+  padding: 6px 12px;
+  border: 1px solid #333;
+  border-radius: 10px;
+  background: #252535;
+  color: #ccc;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+.student-cal-nav-btn:active {
+  background: #333;
+}
+
+.student-cal-label {
+  font-size: 14px;
+  font-weight: 800;
+  color: #e8e8f0;
+}
+
+.student-cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+  margin-bottom: 4px;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  color: #555;
+}
+
+.student-cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+
+.student-cal-cell {
+  aspect-ratio: 1;
+  min-height: 0;
+  min-width: 0;
+  border: 1px solid #252535;
+  border-radius: 8px;
+  background: #1e1e2e;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+  color: inherit;
+}
+
+.student-cal-cell:hover:not(.student-cal-out):not(.student-cal-disabled) {
+  border-color: #a78bfa66;
+  background: #252038;
+}
+
+.student-cal-cell.student-cal-out {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  pointer-events: none;
+}
+
+.student-cal-cell.student-cal-disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.student-cal-cell.student-cal-today {
+  border-color: #a78bfa88;
+}
+
+.student-cal-cell.student-cal-selected {
+  border-color: #a78bfa;
+  background: #1e1832;
+}
+
+.student-cal-cell .student-cal-daynum {
+  font-size: 9px;
+  font-weight: 700;
+  color: #888;
+}
+
+.student-cal-cell .student-cal-emo {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.student-day-detail {
+  margin-top: 12px;
+  padding: 12px;
+  background: #16161f;
+  border-radius: 14px;
+  border: 1px solid #252535;
+  min-height: 56px;
+}
+
+.student-day-placeholder {
+  font-size: 12px;
+  color: #555;
+  margin: 0;
+  text-align: center;
+  padding: 6px 0;
+}
+
+.student-day-head {
+  font-size: 12px;
+  font-weight: 800;
+  color: #a78bfa;
+  margin: 0 0 10px;
+}
+
+.student-day-entry {
+  padding: 8px 0;
+  border-bottom: 1px solid #252535;
+}
+
+.student-day-entry:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.student-day-entry-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+
+.student-day-entry-emo {
+  font-size: 18px;
+}
+
+.student-day-entry-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e8e8f0;
+}
+
+.student-day-entry-time {
+  font-size: 10px;
+  color: #555;
+  margin-left: auto;
+}
+
+.student-day-entry-note {
+  font-size: 11px;
+  color: #888;
+  line-height: 1.4;
+  margin: 0;
+  padding-left: 24px;
+}
+
+.student-day-empty {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  text-align: center;
+}
+
+/* 하단 네비게이션 */
+.nav-bar {
+  height: 70px;
+  background: #14141e;
+  border-top: 1px solid #1e1e2e;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 12px;
+  flex: 1;
+}
+
+.nav-btn .icon {
+  font-size: 20px;
+}
+
+.nav-btn .label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #555;
+}
+
+.nav-btn.active .label {
+  color: #a78bfa;
+}
+
+.nav-center {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 4px 20px rgba(167, 139, 250, 0.4);
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+/* 모달 */
+.modal-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 100;
+  align-items: flex-end;
+  border-radius: 44px;
+  overflow: hidden;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal {
+  background: #16161f;
+  border-radius: 28px 28px 0 0;
+  padding: 24px 20px 32px;
+  width: 100%;
+}
+
+.modal-handle {
+  width: 36px;
+  height: 4px;
+  background: #333;
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 20px;
+  text-align: center;
+}
+
+.emo-picker {
+  display: flex;
+  justify-content: space-around;
+  margin-bottom: 20px;
+}
+
+.emo-opt {
+  font-size: 36px;
+  cursor: pointer;
+  padding: 10px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: none;
+}
+
+.emo-opt.selected {
+  border-color: #a78bfa;
+  background: #1e1832;
+}
+
+.note-input {
+  width: 100%;
+  background: #1e1e2c;
+  border: 1px solid #2a2a3e;
+  border-radius: 14px;
+  color: #e8e8f0;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  padding: 12px 14px;
+  resize: none;
+  outline: none;
+}
+
+.note-input::placeholder {
+  color: #555;
+}
+
+.save-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  color: #fff;
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  border: none;
+  border-radius: 16px;
+  padding: 15px;
+  cursor: pointer;
+  margin-top: 14px;
+}
+
+/* 설정 화면 */
+.set-section {
+  background: #1a1a26;
+  border-radius: 20px;
+  padding: 18px;
+  margin-bottom: 12px;
+  border: 1px solid #252535;
+}
+
+.set-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #252535;
+}
+
+.set-row:last-child {
+  border-bottom: none;
+}
+
+.set-label {
+  font-size: 14px;
+  color: #ccc;
+  font-weight: 600;
+}
+
+.set-sub {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 토글 스위치 — OFF: 어두운 트랙·회색 손잡이 / ON: 보라 트랙·흰 손잡이 */
+.toggle {
+  width: 52px;
+  height: 30px;
+  border-radius: 15px;
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #252532;
+  border: 2px solid #4b4b5c;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45);
+  transition: background 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+}
+
+.toggle.on {
+  background: linear-gradient(180deg, #a78bfa 0%, #6d28d9 55%, #5b21b6 100%);
+  border-color: #c4b5fd;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 0 0 1px rgba(124, 58, 237, 0.45),
+    0 2px 10px rgba(109, 40, 217, 0.35);
+}
+
+.toggle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  margin-top: -11px;
+  background: #b8b8c8;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+  transition: left 0.22s ease, background 0.22s ease, box-shadow 0.22s ease;
+}
+
+.toggle.on::after {
+  left: calc(100% - 3px - 22px);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+}
+
+.toggle:focus-visible {
+  outline: 2px solid #a78bfa;
+  outline-offset: 3px;
+}
+
+/* 이름 입력 */
+.name-input {
+  background: #252535;
+  border: 1px solid #333;
+  border-radius: 10px;
+  color: #e8e8f0;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  padding: 8px 12px;
+  outline: none;
+  width: 140px;
+  text-align: right;
+}
+
+.name-input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 설정 — 매일 알림 시각 (type=time) */
+.remind-time-block {
+  margin-top: 4px;
+  padding-top: 14px;
+  border-top: 1px solid #252535;
+}
+
+.remind-time-block__label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #b8b8cc;
+  font-family: 'Nunito', sans-serif;
+}
+
+.remind-time-block__badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #2a2438, #1e1a2e);
+  color: #ddd6fe;
+  border: 1px solid #a78bfa55;
+}
+
+.remind-time-block--off {
+  opacity: 0.72;
+}
+
+.remind-time-block--off .remind-time-block__badge {
+  opacity: 0.75;
+}
+
+.remind-time-input.name-input {
+  width: 100%;
+  max-width: none;
+  min-height: 48px;
+  padding: 12px 16px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  border-radius: 14px;
+  border-width: 2px;
+  border-color: #3d3d52;
+  text-align: center;
+  box-sizing: border-box;
+  color-scheme: dark;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.remind-time-input.name-input:hover:not(:disabled) {
+  border-color: #5b5b72;
+  background: #2a2a38;
+}
+
+.remind-time-input.name-input:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.28);
+}
+
+.remind-time-input.name-input::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.9;
+  padding: 4px;
+  margin-left: 4px;
+  border-radius: 8px;
+  filter: invert(0.88) brightness(1.15);
+}
+
+.remind-time-input.name-input:hover:not(:disabled)::-webkit-calendar-picker-indicator {
+  background: rgba(167, 139, 250, 0.2);
+}
+
+.profile-guard-field:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.set-profile-unlock-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 6px;
+}
+
+.set-profile-unlock-row .name-input {
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  text-align: left;
+}
+
+.profile-unlock-btn {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: 'Nunito', sans-serif;
+}
+
+/* 아바타 */
+.avatar-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #a78bfa, #7c3aed);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  margin: 0 auto 8px;
+}
+
+/* 교사 화면에서 보낸 메시지 (홈 상단) */
+.teacher-banner {
+  margin-bottom: 14px;
+}
+
+.teacher-banner-inner {
+  position: relative;
+  background: linear-gradient(135deg, #1e1832, #252035);
+  border: 1px solid #a78bfa44;
+  border-radius: 16px;
+  padding: 12px 36px 12px 14px;
+}
+
+.teacher-banner-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #a78bfa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 4px;
+}
+
+.teacher-banner-text {
+  font-size: 14px;
+  color: #e8e8f0;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.teacher-banner-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 8px;
+  background: #ffffff14;
+  color: #aaa;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.teacher-banner-close:hover {
+  background: #ffffff22;
+  color: #fff;
+}
+
+/* 다른 창·탭 연동 안내 (설정) */
+.sync-hint {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.5;
+  padding: 8px 0 4px;
+  margin: 0;
+  border-bottom: 1px solid #252535;
+}
+
+.sync-hint strong {
+  color: #a78bfa;
+  font-weight: 700;
+}
+
+/* 로그인 / 회원가입 */
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #0a0a12;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  background: #14141e;
+  border: 1px solid #2a2a35;
+  border-radius: 24px;
+  padding: 28px 24px 32px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45);
+}
+
+.auth-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  margin: 0 0 8px;
+}
+
+.auth-lead {
+  font-size: 13px;
+  color: #666;
+  text-align: center;
+  line-height: 1.5;
+  margin: 0 0 20px;
+}
+
+.auth-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #333;
+  border-radius: 12px;
+  background: #1a1a26;
+  color: #888;
+  font-size: 14px;
+  font-weight: 700;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+}
+
+.auth-tab.active {
+  border-color: #a78bfa66;
+  background: #1e1832;
+  color: #a78bfa;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.auth-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  margin-top: 8px;
+}
+
+.auth-hint {
+  font-weight: 600;
+  color: #555;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #333;
+  background: #1a1a26;
+  color: #e8e8f0;
+  font-size: 15px;
+  font-family: 'Nunito', sans-serif;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.auth-input:focus {
+  border-color: #a78bfa88;
+}
+
+.auth-submit {
+  margin-top: 16px;
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  font-family: 'Nunito', sans-serif;
+  cursor: pointer;
+}
+
+.auth-submit:hover {
+  filter: brightness(1.06);
+}
+
+.auth-check-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-secondary, #555);
+  margin: 8px 0 4px;
+  cursor: pointer;
+  user-select: none;
+}
+.auth-check-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--accent, #4f8ef7);
+}
+
+.auth-msg {
+  font-size: 12px;
+  min-height: 18px;
+  margin: 8px 0 0;
+  line-height: 1.4;
+}
+
+.auth-msg--error {
+  color: #f472b6;
+}
+
+/* 삭제 완료 등 안내 (에러 클래스 제거 시 상속색이 검정이 되지 않도록) */
+.auth-msg--info {
+  color: #c4b8dc;
+  font-weight: 600;
+}
+
+.auth-input--code {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* 홈 상단 이름 */
+.home-display-name {
+  font-size: 26px;
+  font-weight: 800;
+  color: #fff;
+  margin: 4px 0 2px;
+  letter-spacing: -0.02em;
+}
+
+.home-class-badge {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a5b4fc;
+  margin: 0 0 6px;
+  padding: 6px 12px;
+  display: inline-block;
+  border-radius: 999px;
+  background: #1e1832;
+  border: 1px solid #3730a355;
+}
+
+.settings-class-linked {
+  font-size: 13px;
+  font-weight: 700;
+  color: #a5b4fc;
+  margin: 8px 0 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #1e1832;
+  border: 1px solid #3730a355;
+}
+
+.empty-state-hint {
+  color: #555;
+  font-size: 13px;
+  text-align: center;
+  margin: 0;
+}
+
+.set-text-muted {
+  color: #888;
+}
+
+.set-text-arrow {
+  color: #555;
+}
+
+.set-text-version {
+  color: #555;
+}

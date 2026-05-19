@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="ko" class="teacher-page">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>교사 대시보드 - 감정 체크인</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='24'%3E📊%3C/text%3E%3C/svg%3E">
+  <script>
+    (function () {
+      try {
+        if (localStorage.getItem('emotion-checkin-teacher-theme') === 'light') {
+          document.documentElement.setAttribute('data-teacher-theme', 'light');
+        }
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/teacher-base.css">
+  <link rel="stylesheet" href="css/teacher-responsive.css">
+  <link rel="stylesheet" href="css/teacher-insight.css">
+  <link rel="stylesheet" href="css/teacher-auth.css">
+  <link rel="stylesheet" href="css/teacher-shell.css">
+  <link rel="stylesheet" href="css/teacher-theme-light.css">
+</head>
+<body class="teacher-body">
+
+  <div id="teacher-auth-gate" class="teacher-auth-gate">
+    <div class="teacher-auth-card">
+      <h1 class="teacher-auth-title">교사 대시보드</h1>
+      <p class="teacher-auth-lead">교사 전용 계정으로 로그인하세요. 처음이면 <strong>회원가입</strong>으로 계정을 만든 뒤 로그인해 주세요.</p>
+      <p id="teacher-auth-post-delete-hint" class="teacher-auth-msg" hidden></p>
+      <div class="teacher-auth-tabs">
+        <button type="button" class="teacher-auth-tab active" id="teacher-tab-login">로그인</button>
+        <button type="button" class="teacher-auth-tab" id="teacher-tab-signup">회원가입</button>
+      </div>
+      <form id="form-teacher-login" class="teacher-auth-form" autocomplete="on">
+        <label class="teacher-auth-label" for="teacher-login-userid">아이디 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
+        <input class="teacher-auth-input" id="teacher-login-userid" autocomplete="username" required>
+        <label class="teacher-auth-label" for="teacher-login-password">비밀번호</label>
+        <input class="teacher-auth-input" type="password" id="teacher-login-password" autocomplete="current-password" required>
+        <button type="submit" class="teacher-auth-submit">로그인</button>
+        <p id="teacher-auth-error-login" class="teacher-auth-msg teacher-auth-msg--error"></p>
+      </form>
+      <form id="form-teacher-signup" class="teacher-auth-form" style="display:none;" autocomplete="on">
+        <label class="teacher-auth-label" for="teacher-signup-name">이름</label>
+        <input class="teacher-auth-input" id="teacher-signup-name" maxlength="30" placeholder="예: 김선생" required>
+        <label class="teacher-auth-label" for="teacher-signup-userid">아이디 <span class="teacher-auth-hint">(영문 소문자·숫자 3~30자)</span></label>
+        <input class="teacher-auth-input" id="teacher-signup-userid" maxlength="30" autocomplete="username" required>
+        <label class="teacher-auth-label" for="teacher-signup-password">비밀번호 <span class="teacher-auth-hint">(6자 이상)</span></label>
+        <input class="teacher-auth-input" type="password" id="teacher-signup-password" autocomplete="new-password" required>
+        <label class="teacher-auth-label" for="teacher-signup-password2">비밀번호 확인</label>
+        <input class="teacher-auth-input" type="password" id="teacher-signup-password2" autocomplete="new-password" required>
+        <button type="submit" class="teacher-auth-submit">회원가입</button>
+        <p id="teacher-auth-error-signup" class="teacher-auth-msg teacher-auth-msg--error"></p>
+      </form>
+    </div>
+  </div>
+
+  <div id="teacher-app-shell" class="teacher-app-shell" style="display:none;">
+
+  <div class="teacher-app-layout">
+
+  <header class="teacher-header">
+    <div class="header-inner">
+      <div>
+        <h1 class="header-title">📊 감정 체크인 대시보드</h1>
+        <p class="header-sub"><span id="teacher-session-label"></span><span id="teacher-class-label">2학년 3반</span> · <span id="today-date"></span></p>
+        <p class="header-sync teacher-header-sync--desk">같은 브라우저의 학생 창·탭과 실시간 연동</p>
+      </div>
+      <div class="header-actions teacher-header-actions--desk">
+        <a href="index.html" target="_blank" rel="noopener noreferrer" class="back-btn">학생 앱 ↗ 새 창</a>
+      </div>
+    </div>
+  </header>
+
+  <nav class="teacher-desk-tabs" aria-label="교사 메뉴 (PC)">
+    <button type="button" class="teacher-desk-tab is-active" data-teacher-tab="individual" id="teacher-desk-tab-individual">학생별 보기</button>
+    <button type="button" class="teacher-desk-tab" data-teacher-tab="group" id="teacher-desk-tab-group">학급 전체보기</button>
+    <button type="button" class="teacher-desk-tab" data-teacher-tab="broadcast" id="teacher-desk-tab-broadcast">전체 공지하기</button>
+    <button type="button" class="teacher-desk-tab" data-teacher-tab="settings" id="teacher-desk-tab-settings">설정</button>
+  </nav>
+
+  <section class="summary-section teacher-summary-desk" aria-label="학급 요약">
+    <div class="summary-card">
+      <div class="summary-icon">👥</div>
+      <div class="summary-num" data-summary-field="total">0</div>
+      <div class="summary-lbl">전체 학생</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">✅</div>
+      <div class="summary-num" data-summary-field="checked">0</div>
+      <div class="summary-lbl">오늘 기록</div>
+    </div>
+    <div class="summary-card alert-card">
+      <div class="summary-icon">⚠️</div>
+      <div class="summary-num" data-summary-field="alert">0</div>
+      <div class="summary-lbl">관심 필요</div>
+    </div>
+    <div class="summary-card">
+      <div class="summary-icon">😊</div>
+      <div class="summary-num" data-summary-field="top-emo">-</div>
+      <div class="summary-lbl">오늘 최다 감정</div>
+    </div>
+  </section>
+
+  <div class="teacher-panels">
+
+    <div class="teacher-panel is-active" data-teacher-panel="individual" id="teacher-panel-individual">
+      <main class="main-content">
+        <section class="student-list-section">
+          <div class="section-header">
+            <h2 class="section-title">학생별 목록</h2>
+            <select class="filter-select" id="filter-emo" onchange="filterStudents(this.value)">
+              <option value="all">전체</option>
+              <option value="😊">😊 기분 좋음</option>
+              <option value="😐">😐 보통</option>
+              <option value="😢">😢 슬픔</option>
+              <option value="😡">😡 화남</option>
+              <option value="😴">😴 피곤함</option>
+              <option value="none">미기록</option>
+            </select>
+          </div>
+          <p class="teacher-student-list-hint">학생 줄을 누르면 오른쪽에 상세·기록이 열려요 (모바일은 아래 시트)</p>
+          <div class="student-list" id="student-list"></div>
+        </section>
+
+        <section class="detail-panel" id="detail-panel">
+          <div class="detail-empty" id="detail-empty">
+            <p>👈 학생을 선택하면<br>상세·기록이 나와요</p>
+          </div>
+          <div class="detail-content" id="detail-content" style="display:none;">
+            <button type="button" class="detail-back-to-list" id="btn-back-to-student-list" aria-label="학생별 목록으로 돌아가기">← 학생별 목록</button>
+            <div class="detail-header">
+              <div class="detail-avatar" id="d-avatar">😊</div>
+              <div>
+                <h3 class="detail-name" id="d-name">-</h3>
+                <p class="detail-meta" id="d-meta">-</p>
+              </div>
+            </div>
+            <button type="button" class="insight-btn" id="btn-open-insight">📈 감정 그래프·달력 보기</button>
+            <div class="detail-today">
+              <p class="detail-section-lbl">오늘 감정</p>
+              <div class="today-badge" id="d-today-badge">
+                <span id="d-today-emo">-</span>
+                <span id="d-today-label">-</span>
+              </div>
+              <p class="detail-record-at" id="d-today-recorded-at" hidden></p>
+              <p class="detail-note" id="d-today-note"></p>
+            </div>
+            <div class="detail-week">
+              <p class="detail-section-lbl">이번 주 감정</p>
+              <div class="week-emo-row" id="d-week-row"></div>
+            </div>
+            <div class="detail-history">
+              <p class="detail-section-lbl">최근 기록</p>
+              <div id="d-history-list"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="teacher-panel" data-teacher-panel="group" id="teacher-panel-group">
+      <div class="teacher-group-inner">
+        <section class="summary-section teacher-summary-mobile" aria-label="학급 요약">
+          <div class="summary-card">
+            <div class="summary-icon">👥</div>
+            <div class="summary-num" data-summary-field="total">0</div>
+            <div class="summary-lbl">전체 학생</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">✅</div>
+            <div class="summary-num" data-summary-field="checked">0</div>
+            <div class="summary-lbl">오늘 기록</div>
+          </div>
+          <div class="summary-card alert-card">
+            <div class="summary-icon">⚠️</div>
+            <div class="summary-num" data-summary-field="alert">0</div>
+            <div class="summary-lbl">관심 필요</div>
+          </div>
+          <div class="summary-card">
+            <div class="summary-icon">😊</div>
+            <div class="summary-num" data-summary-field="top-emo">-</div>
+            <div class="summary-lbl">오늘 최다 감정</div>
+          </div>
+        </section>
+        <h2 class="teacher-group-page-title">학급 전체보기</h2>
+        <p class="teacher-group-page-lead">오늘 체크인 기준으로 학급 감정을 한눈에 볼 수 있어요.</p>
+        <section class="teacher-group-chart-section" aria-label="오늘 감정 분포">
+          <h3 class="teacher-group-section-heading">오늘 감정 분포</h3>
+          <div id="teacher-group-chart" class="teacher-group-chart"></div>
+        </section>
+        <h3 class="teacher-group-section-heading teacher-group-list-heading">학생별 오늘 상태</h3>
+        <p class="teacher-group-grid-hint">이름을 누르면 학생별 보기로 이동해요.</p>
+        <div id="teacher-group-list" class="teacher-group-list" role="list"></div>
+      </div>
+    </div>
+
+    <div class="teacher-panel" data-teacher-panel="broadcast" id="teacher-panel-broadcast">
+      <div class="teacher-broadcast-panel-inner">
+        <h2 class="teacher-broadcast-panel-title">전체 공지하기</h2>
+        <p class="broadcast-hint teacher-broadcast-panel-hint">같은 브라우저의 학생 앱 홈 상단에 <strong>전체 공지</strong>로 표시돼요. 학생이 홈을 열면 바로 볼 수 있습니다.</p>
+        <div class="teacher-broadcast-panel-card">
+          <label class="teacher-broadcast-input-label" for="teacher-broadcast-input">공지 내용</label>
+          <textarea id="teacher-broadcast-input" class="broadcast-textarea" rows="4" maxlength="200" placeholder="예: 오늘 수업은 3교시에 진행합니다."></textarea>
+          <div class="teacher-broadcast-actions">
+            <button type="button" class="broadcast-btn" id="teacher-broadcast-send">전체공지 등록</button>
+            <button type="button" class="broadcast-btn ghost" id="teacher-broadcast-clear">공지 지우기</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="teacher-panel" data-teacher-panel="settings" id="teacher-panel-settings">
+      <div class="teacher-settings-inner">
+        <h2 class="teacher-settings-title">설정</h2>
+        <p class="teacher-settings-lead">화면·계정·학생 데이터를 관리해요. 아래에서 섹션을 고르세요.</p>
+        <nav class="teacher-settings-subnav teacher-settings-subnav--segmented" aria-label="설정 하위 메뉴">
+          <button type="button" class="teacher-settings-subtab is-active" data-settings-sub="app" id="teacher-settings-sub-app">앱 환경</button>
+          <button type="button" class="teacher-settings-subtab" data-settings-sub="accounts" id="teacher-settings-sub-accounts">학생 계정 생성</button>
+          <button type="button" class="teacher-settings-subtab" data-settings-sub="roster" id="teacher-settings-sub-roster">명단 관리</button>
+        </nav>
+
+        <div class="teacher-settings-subpanel is-active" data-settings-panel="app" id="teacher-settings-panel-app">
+          <div class="teacher-settings-card teacher-settings-card--spacious">
+            <p class="teacher-settings-row-title">화면 모드</p>
+            <div class="teacher-settings-toggle-row">
+              <span class="teacher-settings-toggle-lbl">다크 모드</span>
+              <div class="toggle on" id="teacher-settings-dark-toggle" role="switch" aria-checked="true" aria-label="다크 모드"></div>
+            </div>
+          </div>
+          <div class="teacher-settings-card teacher-settings-card--spacious">
+            <p class="teacher-settings-row-title">계정</p>
+            <button type="button" class="broadcast-btn ghost teacher-settings-fullbtn" id="teacher-settings-logout">로그아웃</button>
+            <p class="teacher-settings-sub" style="margin-top:16px;">계정을 지우면 이 브라우저의 <strong>교사 계정·학급·명단 수정·공지</strong>가 함께 없어져요. 학생 앱의 다른 학생 계정·기록은 그대로예요.</p>
+            <label class="teacher-roster-label" for="teacher-delete-account-password" style="margin-top:12px;">비밀번호 확인</label>
+            <input type="password" class="teacher-roster-input" id="teacher-delete-account-password" autocomplete="current-password" placeholder="현재 비밀번호" style="max-width:320px;">
+            <button type="button" class="broadcast-btn ghost teacher-settings-fullbtn" id="teacher-delete-account-btn" style="margin-top:12px;border-color:#f87171;color:#fca5a5;">교사 계정 영구 삭제</button>
+            <p id="teacher-delete-account-msg" class="teacher-auth-msg teacher-auth-msg--error" style="margin-top:10px;"></p>
+          </div>
+          <div class="teacher-settings-card teacher-settings-card--spacious">
+            <p class="teacher-settings-row-title">앱</p>
+            <a href="index.html" target="_blank" rel="noopener noreferrer" class="back-btn teacher-settings-fullbtn">학생 앱 열기 ↗</a>
+            <p class="teacher-settings-sub teacher-settings-version">버전 1.0.0</p>
+          </div>
+        </div>
+
+        <div class="teacher-settings-subpanel" data-settings-panel="accounts" id="teacher-settings-panel-accounts">
+          <h3 class="teacher-manage-title teacher-settings-section-title">학생 계정 생성</h3>
+          <p class="teacher-manage-hint">학생 앱에서 쓸 아이디·비밀번호와 프로필을 정합니다. 저장은 이 브라우저에만 되며, 학생 앱과 같은 브라우저를 쓰면 바로 로그인할 수 있어요.</p>
+          <div class="teacher-manage-card teacher-manage-card--spacious">
+            <form id="form-teacher-create-student-account" class="teacher-roster-form teacher-settings-form" autocomplete="off">
+              <div class="teacher-field teacher-field--full">
+                <label class="teacher-roster-label" for="teacher-acct-name">이름 <span class="teacher-roster-req">*</span></label>
+                <input class="teacher-roster-input" id="teacher-acct-name" maxlength="30" placeholder="홍길동" required>
+              </div>
+              <div class="teacher-settings-field-grid teacher-settings-field-grid--2">
+                <div class="teacher-field">
+                  <label class="teacher-roster-label" for="teacher-acct-grade">학년 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" id="teacher-acct-grade" maxlength="40" placeholder="예: 2학년" required>
+                </div>
+                <div class="teacher-field">
+                  <label class="teacher-roster-label" for="teacher-acct-class">반 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" id="teacher-acct-class" maxlength="20" placeholder="예: 3반" required>
+                </div>
+              </div>
+              <div class="teacher-field teacher-field--full">
+                <label class="teacher-roster-label" for="teacher-acct-student-number">번호(자리·출석번호) <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">학년·반을 정한 뒤, 반에서 쓰는 번호예요.</span></label>
+                <input class="teacher-roster-input" id="teacher-acct-student-number" maxlength="20" placeholder="예: 15 또는 15번" required>
+              </div>
+              <div class="teacher-field teacher-field--full">
+                <label class="teacher-roster-label" for="teacher-acct-userid">로그인 아이디 <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">(영문 소문자·숫자 3~30자)</span></label>
+                <input class="teacher-roster-input" id="teacher-acct-userid" maxlength="30" autocomplete="username" required>
+              </div>
+              <div class="teacher-settings-field-grid teacher-settings-field-grid--2">
+                <div class="teacher-field">
+                  <label class="teacher-roster-label" for="teacher-acct-password">비밀번호 <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">(6자 이상)</span></label>
+                  <input class="teacher-roster-input" type="password" id="teacher-acct-password" autocomplete="new-password" required>
+                </div>
+                <div class="teacher-field">
+                  <label class="teacher-roster-label" for="teacher-acct-password2">비밀번호 확인 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" type="password" id="teacher-acct-password2" autocomplete="new-password" required>
+                </div>
+              </div>
+              <p id="teacher-acct-error" class="teacher-auth-msg teacher-auth-msg--error" role="status"></p>
+              <div class="teacher-roster-actions teacher-roster-actions--end">
+                <button type="submit" class="broadcast-btn" id="teacher-acct-submit">계정 만들기</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="teacher-settings-subpanel" data-settings-panel="roster" id="teacher-settings-panel-roster">
+          <nav class="teacher-settings-subnav teacher-settings-subnav--segmented teacher-roster-subnav" aria-label="명단 관리 하위 메뉴">
+            <button type="button" class="teacher-settings-subtab is-active" data-roster-sub="class-room" id="teacher-roster-sub-class">학급 생성</button>
+            <button type="button" class="teacher-settings-subtab" data-roster-sub="roster" id="teacher-roster-sub-roster">명단</button>
+          </nav>
+
+          <div class="teacher-roster-subpanel is-active" data-roster-panel="class-room" id="teacher-roster-panel-class-room">
+            <div class="teacher-settings-card teacher-settings-card--spacious teacher-class-room-card">
+              <p class="teacher-settings-row-title">학급 만들기</p>
+              <p class="teacher-settings-sub">학급 이름과 <strong>6자리 코드</strong>가 생겨요. 코드를 학생에게 알려 주면, 학생 앱 <strong>설정</strong>에서 같은 코드로 연결할 수 있어요. (데이터는 이 브라우저에만 있어요 — 선생님·학생 창을 <strong>같은 브라우저</strong>로 쓰는 경우에만 맞아요.)</p>
+              <div id="teacher-class-room-create">
+                <label class="teacher-roster-label" for="teacher-class-name-input">학급 이름</label>
+                <input class="teacher-roster-input" id="teacher-class-name-input" maxlength="40" placeholder="예: 2학년 3반" autocomplete="off">
+                <div class="teacher-roster-actions" style="margin-top:14px;">
+                  <button type="button" class="broadcast-btn" id="teacher-class-create-btn">학급 만들기</button>
+                </div>
+              </div>
+              <div id="teacher-class-room-active" style="display:none;">
+                <p class="teacher-class-room-line"><span class="teacher-class-room-k">학급 이름</span> <strong id="teacher-class-room-name"></strong></p>
+                <p class="teacher-class-room-k" style="margin-top:14px;">학급 코드</p>
+                <div class="teacher-class-code-box" id="teacher-class-room-code" aria-live="polite"></div>
+                <div class="teacher-class-room-actions">
+                  <button type="button" class="broadcast-btn" id="teacher-class-copy-btn">코드 복사</button>
+                  <button type="button" class="broadcast-btn ghost" id="teacher-class-regenerate-btn">코드 새로 만들기</button>
+                  <button type="button" class="broadcast-btn ghost" id="teacher-class-remove-btn">학급 없애기</button>
+                </div>
+              </div>
+              <p id="teacher-class-room-msg" class="teacher-auth-msg" style="margin-top:12px;"></p>
+            </div>
+          </div>
+
+          <div class="teacher-roster-subpanel" data-roster-panel="roster" id="teacher-roster-panel-roster">
+            <h2 class="teacher-roster-class-page-title" id="teacher-roster-class-page-title">학급 미설정</h2>
+            <p class="teacher-manage-hint">교사가 추가한 학생은 이 브라우저에만 저장돼요. JSON 명단 학생은 수정하거나 대시보드에서 숨길 수 있어요. 로그인 계정이 있는 학생은 <strong>학생 계정 생성</strong> 탭에서 관리하는 것을 권장해요.</p>
+            <div class="teacher-manage-card teacher-manage-card--spacious">
+              <form id="teacher-roster-form" class="teacher-roster-form teacher-settings-form" autocomplete="off">
+                <p class="teacher-roster-manual-heading teacher-roster-manual-heading--in-card" aria-label="수동으로 학생 추가">수동추가</p>
+                <div class="teacher-field teacher-field--full">
+                  <label class="teacher-roster-label" for="teacher-roster-userid">아이디 <span class="teacher-roster-opt">(선택, 로그인 연동 시)</span></label>
+                  <input class="teacher-roster-input" id="teacher-roster-userid" maxlength="30" placeholder="영문 소문자·숫자 3~30자" autocomplete="off">
+                </div>
+                <div class="teacher-field teacher-field--full">
+                  <label class="teacher-roster-label" for="teacher-roster-name">이름 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" id="teacher-roster-name" maxlength="30" required placeholder="이름">
+                </div>
+                <div class="teacher-settings-field-grid teacher-settings-field-grid--2">
+                  <div class="teacher-field">
+                    <label class="teacher-roster-label" for="teacher-roster-grade">학년</label>
+                    <input class="teacher-roster-input" id="teacher-roster-grade" maxlength="40" placeholder="예: 2학년">
+                  </div>
+                  <div class="teacher-field">
+                    <label class="teacher-roster-label" for="teacher-roster-class">반</label>
+                    <input class="teacher-roster-input" id="teacher-roster-class" maxlength="20" placeholder="예: 3반">
+                  </div>
+                </div>
+                <div class="teacher-field teacher-field--full">
+                  <label class="teacher-roster-label" for="teacher-roster-number">학번 <span class="teacher-roster-opt">(자리·출석번호)</span></label>
+                  <input class="teacher-roster-input" id="teacher-roster-number" maxlength="20" placeholder="예: 15 또는 15번">
+                </div>
+                <div class="teacher-roster-actions teacher-roster-actions--end">
+                  <button type="submit" class="broadcast-btn" id="teacher-roster-submit">학생 추가</button>
+                  <button type="button" class="broadcast-btn ghost" id="teacher-roster-cancel-edit">취소</button>
+                </div>
+              </form>
+            </div>
+            <h3 class="teacher-manage-subtitle">현재 명단</h3>
+            <div class="teacher-manage-list teacher-manage-list--spacious" id="teacher-manage-list"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /.teacher-panels -->
+
+  <nav class="teacher-mobile-tabbar" aria-label="교사 메뉴 (모바일)">
+    <button type="button" class="teacher-mtab is-active" data-teacher-tab="individual" id="teacher-mtab-individual" aria-label="학생별 보기">
+      <span class="teacher-mtab-ico" aria-hidden="true">👤</span>
+      <span class="teacher-mtab-lbl">학생별</span>
+    </button>
+    <button type="button" class="teacher-mtab" data-teacher-tab="group" id="teacher-mtab-group" aria-label="학급 전체보기">
+      <span class="teacher-mtab-ico" aria-hidden="true">👥</span>
+      <span class="teacher-mtab-lbl">학급</span>
+    </button>
+    <button type="button" class="teacher-mtab" data-teacher-tab="broadcast" id="teacher-mtab-broadcast" aria-label="전체 공지하기">
+      <span class="teacher-mtab-ico" aria-hidden="true">📢</span>
+      <span class="teacher-mtab-lbl">공지</span>
+    </button>
+    <button type="button" class="teacher-mtab" data-teacher-tab="settings" id="teacher-mtab-settings" aria-label="설정">
+      <span class="teacher-mtab-ico" aria-hidden="true">⚙️</span>
+      <span class="teacher-mtab-lbl">설정</span>
+    </button>
+  </nav>
+
+  </div><!-- /.teacher-app-layout -->
+
+  <button type="button" class="detail-mobile-backdrop" id="detail-mobile-backdrop" aria-label="상세 닫기" tabindex="-1"></button>
+
+  <div id="insight-overlay" class="insight-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="insight-title" onclick="closeInsightModal()">
+    <div class="insight-modal" id="insight-modal-box" onclick="event.stopPropagation()">
+      <div class="insight-modal-head">
+        <h2 id="insight-title" class="insight-modal-title">감정 보기</h2>
+        <button type="button" class="insight-close" id="insight-close" aria-label="닫기">×</button>
+      </div>
+      <div class="insight-modal-body">
+        <section class="insight-block">
+          <h3 class="insight-block-title">감정 분포</h3>
+          <p class="insight-block-desc">전체 기록에서 감정별 비율이에요.</p>
+          <div id="insight-graph" class="insight-graph"></div>
+        </section>
+        <section class="insight-block">
+          <h3 class="insight-block-title">달력</h3>
+          <p class="insight-block-desc">날짜를 누르면 그날 메모를 볼 수 있어요.</p>
+          <div class="insight-cal-nav">
+            <button type="button" class="insight-cal-nav-btn" id="insight-cal-prev" aria-label="이전 달">◀</button>
+            <span id="insight-cal-label" class="insight-cal-label">—</span>
+            <button type="button" class="insight-cal-nav-btn" id="insight-cal-next" aria-label="다음 달">▶</button>
+          </div>
+          <div class="insight-cal-weekdays" aria-hidden="true">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+          </div>
+          <div id="insight-calendar" class="insight-calendar"></div>
+          <div id="insight-day-detail" class="insight-day-detail">
+            <p class="insight-day-placeholder">날짜를 선택해 주세요</p>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /teacher-app-shell -->
+
+  <script src="js/core/paths.js"></script>
+  <script src="js/core/api.js"></script>
+  <script src="js/core/cross-tab.js"></script>
+  <script src="js/core/storage.js"></script>
+  <script src="js/core/student-accounts.js"></script>
+  <script src="js/teacher/teacher-data.js"></script>
+  <script src="js/teacher/teacher-theme.js"></script>
+  <script src="js/teacher/teacher-app.js"></script>
+  <script src="js/teacher/teacher-class-room.js"></script>
+  <script src="js/teacher/teacher-roster.js"></script>
+  <script src="js/teacher/teacher-auth.js"></script>
+</body>
+</html>
