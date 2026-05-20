@@ -751,12 +751,12 @@ function renderDetailPanel(student) {
     const div = document.createElement('div');
     div.className = 'd-log-item';
     div.innerHTML = `
-      <div class="d-log-emo">${e.emo}</div>
+      <div class="d-log-emo">${escTeacherListText(e.emo)}</div>
       <div class="d-log-info">
-        <p class="d-log-label">${e.label}</p>
-        <p class="d-log-note">${e.note || '메모 없음'}</p>
+        <p class="d-log-label">${escTeacherListText(e.label)}</p>
+        <p class="d-log-note">${e.note ? escTeacherListText(e.note) : '메모 없음'}</p>
       </div>
-      <span class="d-log-date">${formatRecordDateTime(e.date)}</span>
+      <span class="d-log-date">${escTeacherListText(formatRecordDateTime(e.date))}</span>
     `;
     histList.appendChild(div);
   });
@@ -907,9 +907,9 @@ function renderInsightGraph() {
     const row = document.createElement('div');
     row.className = 'insight-graph-row';
     row.innerHTML = `
-      <span class="insight-graph-emo">${em}</span>
+      <span class="insight-graph-emo">${escInsightHtml(em)}</span>
       <div class="insight-graph-bar-wrap">
-        <div class="insight-graph-bar" style="width:${pct}%;background:${color};"></div>
+        <div class="insight-graph-bar" style="width:${pct}%;background:${escInsightHtml(color)};"></div>
       </div>
       <span class="insight-graph-count">${n}</span>
     `;

@@ -5,39 +5,161 @@
 
 var SS_ID = '1pQVq__ff9JZtmijpMgQW6Koa7uQOqrI7EXTrJrCx9lA';
 
-// ------------------------------------
+// ============================
+// 🔒 보안 모듈
+// ============================
+
+/**
+ * 세션 비밀키: 최초 실행 시 PropertiesService에 자동 생성·저장.
+ * Apps Script 편집기 > 프로젝트 설정 > 스크립트 속성 > SESSION_SECRET 에서 확인 가능.
+ */
+function getSessionSecret() {
+  var props  = PropertiesService.getScriptProperties();
+  var secret = props.getProperty('SESSION_SECRET');
+  if (!secret) {
+    secret = Utilities.getUuid() + '-' + Utilities.getUuid();
+    props.setProperty('SESSION_SECRET', secret);
+  }
+  return secret;
+}
+
+/**
+ * 교사 인증코드: PropertiesService의 TEACHER_AUTH_CODE 속성을 우선 사용.
+ * 속성이 없으면 기본값 '6574' 사용 (변경 강력 권장).
+ * Apps Script 편집기 > 프로젝트 설정 > 스크립트 속성 > TEACHER_AUTH_CODE 추가.
+ */
+function getTeacherAuthCode() {
+  try {
+    var code = PropertiesService.getScriptProperties().getProperty('TEACHER_AUTH_CODE');
+    if (code) return code;
+  } catch (e) {}
+  return '6574';
+}
+
+/** HMAC-SHA256 서명 → 소문자 16진수 문자열 */
+function hmacSha256Hex(message, secret) {
+  var msgBytes    = Utilities.newBlob(message).getBytes();
+  var secretBytes = Utilities.newBlob(secret).getBytes();
+  var sig = Utilities.computeHmacSha256Signature(msgBytes, secretBytes);
+  return sig.map(function(b) {
+    return ('0' + (b & 0xff).toString(16)).slice(-2);
+  }).join('');
+}
+
+/** 세션 토큰 유효 기간: 7일 */
+var TOKEN_EXPIRY_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * 세션 토큰 생성.
+ * 형식: base64url(encodeURIComponent(userId)|role|expiry) + "." + HMAC-SHA256
+ */
+function generateSessionToken(userId, role) {
+  var expiry  = Date.now() + TOKEN_EXPIRY_MS;
+  var payload = encodeURIComponent(userId) + '|' + role + '|' + expiry;
+  var b64     = Utilities.base64EncodeWebSafe(Utilities.newBlob(payload).getBytes());
+  return b64 + '.' + hmacSha256Hex(b64, getSessionSecret());
+}
+
+/**
+ * 세션 토큰 검증.
+ * @returns {{ valid:true, userId:string, role:string }}
+ *       | {{ valid:false, error:string }}
+ */
+function validateSessionToken(token) {
+  if (!token) return { valid: false, error: '로그인이 필요해요.' };
+  var parts = String(token).split('.');
+  if (parts.length !== 2) return { valid: false, error: '토큰 형식이 잘못됐어요.' };
+  var b64 = parts[0], sig = parts[1];
+
+  // HMAC 서명 검증 (타이밍 공격 방지를 위해 전체 비교)
+  if (hmacSha256Hex(b64, getSessionSecret()) !== sig)
+    return { valid: false, error: '토큰이 유효하지 않아요.' };
+
+  try {
+    var decoded = Utilities.newBlob(Utilities.base64DecodeWebSafe(b64)).getDataAsString();
+    var f = decoded.split('|'); // [encodedUserId, role, expiry]
+    if (f.length !== 3) return { valid: false, error: '토큰 형식이 잘못됐어요.' };
+    var expiry = parseInt(f[2], 10);
+    if (isNaN(expiry) || Date.now() > expiry)
+      return { valid: false, error: '로그인이 만료됐어요. 다시 로그인해 주세요.' };
+    return { valid: true, userId: decodeURIComponent(f[0]), role: f[1] };
+  } catch (err) {
+    return { valid: false, error: '토큰을 읽을 수 없어요.' };
+  }
+}
+
+/* ── 로그인 실패 횟수 제한 (CacheService, 15분) ── */
+var MAX_LOGIN_FAILS = 10;
+var FAIL_LOCK_SECS  = 900; // 15분 = 900초
+
+function _failKey(uid) { return 'fail_' + String(uid).substring(0, 50); }
+
+function getLoginFailCount(uid) {
+  try {
+    var v = CacheService.getScriptCache().get(_failKey(uid));
+    return v ? parseInt(v, 10) : 0;
+  } catch (e) { return 0; }
+}
+
+function incrementLoginFail(uid) {
+  try {
+    var key = _failKey(uid), cache = CacheService.getScriptCache();
+    cache.put(key, String((parseInt(cache.get(key) || '0', 10)) + 1), FAIL_LOCK_SECS);
+  } catch (e) {}
+}
+
+function clearLoginFail(uid) {
+  try { CacheService.getScriptCache().remove(_failKey(uid)); } catch (e) {}
+}
+
+/**
+ * HTML 태그 제거 + 길이 제한.
+ * 저장 전 모든 사용자 입력에 적용하여 Stored XSS 방지.
+ */
+function sanitizeText(s, maxLen) {
+  var str = String(s == null ? '' : s).replace(/<[^>]*>/g, '').trim();
+  return (maxLen && str.length > maxLen) ? str.substring(0, maxLen) : str;
+}
+
+// ============================
 // 진입점
-// ------------------------------------
+// ============================
 
 function doPost(e) {
   try {
-    var body = JSON.parse(e.postData.contents);
+    var body   = JSON.parse(e.postData.contents);
     var action = body.action;
-    var handlers = {
-      login:                  function() { return unifiedLogin(body); },
-      signup:                 function() { return unifiedSignup(body); },
-      teacherSignup:          function() { return teacherSignup(body); },
-      teacherLogin:           function() { return teacherLogin(body); },
-      studentSignup:          function() { return studentSignup(body); },
-      studentLogin:           function() { return studentLogin(body); },
-      saveEmotion:            function() { return saveEmotion(body); },
-      getEmotions:            function() { return getEmotions(body); },
-      getAllStudentsForTeacher:function() { return getAllStudentsForTeacher(body); },
-      createClass:            function() { return createClass(body); },
-      deleteClass:            function() { return deleteClass(body); },
-      getClassByCode:         function() { return getClassByCode(body); },
-      getClassByTeacher:      function() { return getClassByTeacher(body); },
-      joinClass:              function() { return joinClass(body); },
-      leaveClass:             function() { return leaveClass(body); },
-      setNotice:              function() { return setNotice(body); },
-      getNotice:              function() { return getNotice(body); },
-      deleteStudentAccount:   function() { return deleteStudentAccount(body); },
-      deleteTeacherAccount:   function() { return deleteTeacherAccount(body); },
-      resetClassRoster:       function() { return resetClassRoster(body); },
-      changeStudentPassword:  function() { return changeStudentPassword(body); }
-    };
-    if (!handlers[action]) return json({ ok: false, error: '알 수 없는 요청이에요.' });
-    return json(handlers[action]());
+    if (typeof action !== 'string') return json({ ok: false, error: '잘못된 요청이에요.' });
+
+    // ── 공개 액션 (토큰 불필요) ──
+    var publicActions = ['login', 'signup', 'teacherLogin', 'studentLogin', 'teacherSignup', 'studentSignup'];
+    if (publicActions.indexOf(action) !== -1) {
+      if (action === 'signup' || action === 'teacherSignup' || action === 'studentSignup')
+        return json(unifiedSignup(body));
+      return json(unifiedLogin(body)); // login / teacherLogin / studentLogin
+    }
+
+    // ── 나머지 모든 액션: 세션 토큰 필수 ──
+    var session = validateSessionToken(body._token);
+    if (!session.valid) return json({ ok: false, error: session.error || '로그인이 필요해요.' });
+
+    if (action === 'saveEmotion')             return json(saveEmotion(body, session));
+    if (action === 'getEmotions')             return json(getEmotions(body, session));
+    if (action === 'getAllStudentsForTeacher') return json(getAllStudentsForTeacher(body, session));
+    if (action === 'createClass')             return json(createClass(body, session));
+    if (action === 'deleteClass')             return json(deleteClass(body, session));
+    if (action === 'getClassByCode')          return json(getClassByCode(body, session));
+    if (action === 'getClassByTeacher')       return json(getClassByTeacher(body, session));
+    if (action === 'joinClass')               return json(joinClass(body, session));
+    if (action === 'leaveClass')             return json(leaveClass(body, session));
+    if (action === 'setNotice')               return json(setNotice(body, session));
+    if (action === 'getNotice')               return json(getNotice(body, session));
+    if (action === 'deleteStudentAccount')    return json(deleteStudentAccount(body, session));
+    if (action === 'deleteTeacherAccount')    return json(deleteTeacherAccount(body, session));
+    if (action === 'resetClassRoster')        return json(resetClassRoster(body, session));
+    if (action === 'changeStudentPassword')   return json(changeStudentPassword(body, session));
+
+    return json({ ok: false, error: '알 수 없는 요청이에요.' });
   } catch (err) {
     return json({ ok: false, error: err.message });
   }
@@ -53,9 +175,9 @@ function json(data) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
-// ------------------------------------
+// ============================
 // 시트 헬퍼
-// ------------------------------------
+// ============================
 
 function getSpreadsheet() {
   return SpreadsheetApp.openById(SS_ID);
@@ -70,7 +192,6 @@ function getSheetRows(sheetName) {
   return data.slice(1).map(function(row, i) {
     var obj = { _row: i + 2 };
     headers.forEach(function(h, j) {
-      // Google Sheets가 숫자처럼 생긴 값을 number로 변환하는 것을 방지
       var v = row[j];
       obj[h] = (v === null || v === undefined) ? '' : String(v);
     });
@@ -81,32 +202,28 @@ function getSheetRows(sheetName) {
 function appendSheetRow(sheetName, obj) {
   var sheet = getSpreadsheet().getSheetByName(sheetName);
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  var row = headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; });
-  sheet.appendRow(row);
+  sheet.appendRow(headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; }));
 }
 
 function updateSheetRow(sheetName, rowNum, patch) {
   var sheet = getSpreadsheet().getSheetByName(sheetName);
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   headers.forEach(function(h, i) {
-    if (patch[h] !== undefined) {
-      sheet.getRange(rowNum, i + 1).setValue(patch[h]);
-    }
+    if (patch[h] !== undefined) sheet.getRange(rowNum, i + 1).setValue(patch[h]);
   });
 }
 
 function deleteSheetRow(sheetName, rowNum) {
-  var sheet = getSpreadsheet().getSheetByName(sheetName);
-  sheet.deleteRow(rowNum);
+  getSpreadsheet().getSheetByName(sheetName).deleteRow(rowNum);
 }
 
 function generateId() {
   return Utilities.getUuid();
 }
 
-// ------------------------------------
+// ============================
 // 월별 감정 탭 헬퍼
-// ------------------------------------
+// ============================
 
 /** "YYYY_MM" 형식의 월 키 반환 */
 function getMonthKey(date) {
@@ -116,18 +233,15 @@ function getMonthKey(date) {
 
 /** 최근 n개월의 월 키 배열 반환 (이번 달 포함) */
 function getRecentMonthKeys(n) {
-  var keys = [];
-  var d = new Date();
-  for (var i = 0; i < n; i++) {
+  var keys = [], d = new Date();
+  for (var i = 0; i < n; i++)
     keys.push(getMonthKey(new Date(d.getFullYear(), d.getMonth() - i, 1)));
-  }
   return keys;
 }
 
 /** 월별 탭이 없으면 생성 후 반환 */
 function getOrCreateMonthSheet(monthKey) {
-  var ss = getSpreadsheet();
-  var name = 'emo_' + monthKey;
+  var ss = getSpreadsheet(), name = 'emo_' + monthKey;
   var sheet = ss.getSheetByName(name);
   if (!sheet) {
     sheet = ss.insertSheet(name);
@@ -154,7 +268,7 @@ function getMonthSheetRows(monthKey) {
   });
 }
 
-/** emo_ 로 시작하는 모든 탭에서 특정 학생 행 삭제 */
+/** emo_ 탭에서 특정 학생 행 전체 삭제 */
 function deleteEmotionsForStudent(studentUserId) {
   var ss = getSpreadsheet();
   ss.getSheets().forEach(function(sheet) {
@@ -170,57 +284,61 @@ function deleteEmotionsForStudent(studentUserId) {
 }
 
 function generateClassCode() {
-  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
-  var s = '';
-  for (var i = 0; i < 6; i++) {
-    s += chars[Math.floor(Math.random() * chars.length)];
-  }
+  var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ', s = '';
+  for (var i = 0; i < 6; i++) s += chars[Math.floor(Math.random() * chars.length)];
   return s;
 }
 
-// ------------------------------------
+// ============================
 // 통합 로그인 / 회원가입
-// ------------------------------------
-
-var TEACHER_AUTH_CODE = '6574';
+// ============================
 
 function unifiedLogin(p) {
-  var userId       = String(p.userId       || '').trim().toLowerCase();
+  var userId       = sanitizeText(p.userId, 100).toLowerCase();
   var passwordHash = String(p.passwordHash || '').trim();
   if (!userId || !passwordHash) return { ok: false, error: '아이디와 비밀번호를 입력해 주세요.' };
+
+  // 브루트포스 방어: 실패 횟수 초과 시 잠금
+  if (getLoginFailCount(userId) >= MAX_LOGIN_FAILS)
+    return { ok: false, error: '로그인 시도가 너무 많아요. 15분 후에 다시 시도해 주세요.' };
 
   // 학생 확인
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === userId; });
   if (student && student.passwordHash === passwordHash) {
+    clearLoginFail(userId);
     var classInfo = null;
     if (student.classId) {
       var cls = getSheetRows('classes').find(function(c) { return c.id === student.classId; });
       if (cls) classInfo = { id: cls.id, classCode: cls.classCode, className: cls.className, notice: cls.notice || '' };
     }
-    return { ok: true, role: 'student', userId: userId, name: student.name, classInfo: classInfo };
+    var token = generateSessionToken(userId, 'student');
+    return { ok: true, role: 'student', userId: userId, name: student.name, classInfo: classInfo, token: token };
   }
 
   // 교사 확인
   var teachers = getSheetRows('teachers');
   var teacher  = teachers.find(function(r) { return r.userId === userId; });
   if (teacher && teacher.passwordHash === passwordHash) {
+    clearLoginFail(userId);
     var classRoom = null;
     if (teacher.classId) {
       var cls2 = getSheetRows('classes').find(function(c) { return c.id === teacher.classId; });
       if (cls2) classRoom = { id: cls2.id, classCode: cls2.classCode, className: cls2.className, notice: cls2.notice || '' };
     }
-    return { ok: true, role: 'teacher', userId: userId, name: teacher.name, classRoom: classRoom };
+    var token2 = generateSessionToken(userId, 'teacher');
+    return { ok: true, role: 'teacher', userId: userId, name: teacher.name, classRoom: classRoom, token: token2 };
   }
 
+  // 실패 횟수 누적 (학생/교사 구분 없이 같은 userId 키 사용)
+  incrementLoginFail(userId);
   return { ok: false, error: '아이디 또는 비밀번호가 맞지 않아요.' };
 }
 
 function unifiedSignup(p) {
   if (p.isTeacher) {
-    if (String(p.teacherAuthCode || '').trim() !== TEACHER_AUTH_CODE) {
+    if (sanitizeText(p.teacherAuthCode, 50) !== getTeacherAuthCode())
       return { ok: false, error: '교사 인증코드가 올바르지 않아요.' };
-    }
     var r = teacherSignup(p);
     if (r.ok) r.role = 'teacher';
     return r;
@@ -230,118 +348,88 @@ function unifiedSignup(p) {
   return r2;
 }
 
-// ------------------------------------
+// ============================
 // 교사 계정
-// ------------------------------------
+// ============================
 
 function teacherSignup(p) {
-  var userId = String(p.userId || '').trim().toLowerCase();
-  var name   = String(p.name || '').trim();
+  var userId       = sanitizeText(p.userId, 50).toLowerCase();
+  var name         = sanitizeText(p.name, 30);
   var passwordHash = String(p.passwordHash || '').trim();
   if (!userId || !name || !passwordHash) return { ok: false, error: '필수 정보가 부족해요.' };
 
   var rows = getSheetRows('teachers');
-  if (rows.find(function(r) { return r.userId === userId; })) {
+  if (rows.find(function(r) { return r.userId === userId; }))
     return { ok: false, error: '이미 사용 중인 아이디예요.' };
-  }
+
   appendSheetRow('teachers', {
     id: generateId(), name: name, userId: userId,
     passwordHash: passwordHash, classId: '',
     createdAt: new Date().toISOString()
   });
-  return { ok: true, userId: userId, name: name, classRoom: null };
+  var token = generateSessionToken(userId, 'teacher');
+  return { ok: true, userId: userId, name: name, classRoom: null, token: token };
 }
 
 function teacherLogin(p) {
-  var userId = String(p.userId || '').trim().toLowerCase();
-  var passwordHash = String(p.passwordHash || '').trim();
-
-  var rows = getSheetRows('teachers');
-  var row = rows.find(function(r) { return r.userId === userId; });
-  if (!row || row.passwordHash !== passwordHash) {
-    return { ok: false, error: '아이디 또는 비밀번호가 맞지 않아요.' };
-  }
-
-  var classRoom = null;
-  if (row.classId) {
-    var classes = getSheetRows('classes');
-    var cls = classes.find(function(c) { return c.id === row.classId; });
-    if (cls) classRoom = { id: cls.id, classCode: cls.classCode, className: cls.className, notice: cls.notice || '' };
-  }
-  return { ok: true, userId: userId, name: row.name, classRoom: classRoom };
+  return unifiedLogin(p); // 레거시 → 통합 로그인으로 위임
 }
 
-// ------------------------------------
+// ============================
 // 학생 계정
-// ------------------------------------
+// ============================
 
 function studentSignup(p) {
-  var userId = String(p.userId || '').trim().toLowerCase();
-  var name   = String(p.name || '').trim();
+  var userId       = sanitizeText(p.userId, 50).toLowerCase();
+  var name         = sanitizeText(p.name, 30);
   var passwordHash = String(p.passwordHash || '').trim();
   if (!userId || !name || !passwordHash) return { ok: false, error: '필수 정보가 부족해요.' };
 
   var rows = getSheetRows('students');
-  if (rows.find(function(r) { return r.userId === userId; })) {
+  if (rows.find(function(r) { return r.userId === userId; }))
     return { ok: false, error: '이미 사용 중인 아이디예요.' };
-  }
+
   appendSheetRow('students', {
     id: generateId(), name: name, userId: userId,
     passwordHash: passwordHash, classId: '',
     createdAt: new Date().toISOString()
   });
-  return { ok: true, userId: userId, name: name };
+  var token = generateSessionToken(userId, 'student');
+  return { ok: true, userId: userId, name: name, token: token };
 }
 
 function studentLogin(p) {
-  var userId = String(p.userId || '').trim().toLowerCase();
-  var passwordHash = String(p.passwordHash || '').trim();
-
-  var rows = getSheetRows('students');
-  var row = rows.find(function(r) { return r.userId === userId; });
-  if (!row || row.passwordHash !== passwordHash) {
-    return { ok: false, error: '아이디 또는 비밀번호가 맞지 않아요. 처음이면 회원가입으로 계정을 만들 수 있어요.' };
-  }
-
-  var classInfo = null;
-  if (row.classId) {
-    var classes = getSheetRows('classes');
-    var cls = classes.find(function(c) { return c.id === row.classId; });
-    if (cls) classInfo = { id: cls.id, classCode: cls.classCode, className: cls.className, notice: cls.notice || '' };
-  }
-  return { ok: true, userId: userId, name: row.name, classInfo: classInfo };
+  return unifiedLogin(p); // 레거시 → 통합 로그인으로 위임
 }
 
-// ------------------------------------
+// ============================
 // 감정 기록
-// ------------------------------------
+// ============================
 
-function saveEmotion(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+function saveEmotion(p, session) {
+  if (session.role !== 'student') return { ok: false, error: '학생만 감정을 기록할 수 있어요.' };
+  var studentUserId = session.userId; // 토큰에서 추출 — 클라이언트 제공 값 무시
 
-  var now = new Date();
+  var now   = new Date();
   var sheet = getOrCreateMonthSheet(getMonthKey(now));
-  var id = generateId();
-  var obj = {
-    id: id,
+  var id    = generateId();
+  var obj   = {
+    id:            id,
     studentUserId: studentUserId,
-    emo:       String(p.emo   || ''),
-    label:     String(p.label || ''),
-    note:      String(p.note  || ''),
-    date:      String(p.date  || now.toISOString()),
-    createdAt: now.toISOString()
+    emo:           sanitizeText(p.emo,   10),
+    label:         sanitizeText(p.label, 50),
+    note:          sanitizeText(p.note,  500),
+    date:          String(p.date || now.toISOString()),
+    createdAt:     now.toISOString()
   };
   var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   sheet.appendRow(headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; }));
   return { ok: true, id: id };
 }
 
-function getEmotions(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+function getEmotions(p, session) {
+  var studentUserId = session.userId; // 토큰에서 추출
 
-  // 최근 6개월 월별 탭 + 기존 emotions 탭(레거시) 합산
   var allRows = [];
   getRecentMonthKeys(6).forEach(function(key) {
     allRows = allRows.concat(getMonthSheetRows(key));
@@ -356,48 +444,43 @@ function getEmotions(p) {
   return { ok: true, emotions: filtered };
 }
 
-// ------------------------------------
+// ============================
 // 학급
-// ------------------------------------
+// ============================
 
-function createClass(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
-  var className     = String(p.className || '').trim() || '우리 학급';
-  if (!teacherUserId) return { ok: false, error: '교사 아이디가 없어요.' };
+function createClass(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 학급을 만들 수 있어요.' };
+  var teacherUserId = session.userId;
+  var className     = sanitizeText(p.className, 50) || '우리 학급';
 
   var teachers = getSheetRows('teachers');
   var teacher  = teachers.find(function(r) { return r.userId === teacherUserId; });
   if (!teacher) return { ok: false, error: '교사 계정을 찾을 수 없어요.' };
 
-  // 기존 학급 삭제
   var existing = getSheetRows('classes');
   var prev = existing.find(function(r) { return r.teacherId === teacherUserId; });
   if (prev) deleteSheetRow('classes', prev._row);
 
-  // 중복 없는 코드 생성
-  var allCls = getSheetRows('classes');
-  var classCode;
+  var allCls = getSheetRows('classes'), classCode;
   do { classCode = generateClassCode(); }
   while (allCls.find(function(r) { return r.classCode === classCode; }));
 
   var id = generateId();
   appendSheetRow('classes', {
     id: id, teacherId: teacherUserId, classCode: classCode,
-    className: className, notice: '',
-    createdAt: new Date().toISOString()
+    className: className, notice: '', createdAt: new Date().toISOString()
   });
   updateSheetRow('teachers', teacher._row, { classId: id });
-
   return { ok: true, classId: id, classCode: classCode, className: className };
 }
 
-function deleteClass(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
+function deleteClass(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 학급을 삭제할 수 있어요.' };
+  var teacherUserId = session.userId;
   var classes = getSheetRows('classes');
   var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
   if (!cls) return { ok: false, error: '학급이 없어요.' };
 
-  // 소속 학생 연결 해제
   var students = getSheetRows('students');
   students
     .filter(function(s) { return s.classId === cls.id; })
@@ -406,41 +489,40 @@ function deleteClass(p) {
 
   deleteSheetRow('classes', cls._row);
 
-  // 교사 classId 초기화
   var teachers = getSheetRows('teachers');
   var teacher  = teachers.find(function(r) { return r.userId === teacherUserId; });
   if (teacher) updateSheetRow('teachers', teacher._row, { classId: '' });
-
   return { ok: true };
 }
 
-function getClassByCode(p) {
-  var classCode = String(p.classCode || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
+function getClassByCode(p, session) {
+  // session 유효성 이미 검증됨 — 로그인한 사용자만 학급 코드 조회 가능
+  var classCode = sanitizeText(p.classCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, '');
   if (!classCode) return { ok: false, error: '학급 코드를 입력해 주세요.' };
 
   var rows = getSheetRows('classes');
   var cls  = rows.find(function(r) { return r.classCode === classCode; });
   if (!cls)  return { ok: false, error: '코드가 맞지 않아요. 선생님께 다시 확인해 주세요.' };
-
   return { ok: true, classId: cls.id, classCode: cls.classCode, className: cls.className, notice: cls.notice || '' };
 }
 
-function getClassByTeacher(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
+function getClassByTeacher(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 조회할 수 있어요.' };
+  var teacherUserId = session.userId;
   var rows = getSheetRows('classes');
   var cls  = rows.find(function(r) { return r.teacherId === teacherUserId; });
-  if (!cls)  return { ok: true, classRoom: null };
+  if (!cls) return { ok: true, classRoom: null };
   return { ok: true, classRoom: { id: cls.id, classCode: cls.classCode, className: cls.className, notice: cls.notice || '' } };
 }
 
-function joinClass(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  var classCode     = String(p.classCode    || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+function joinClass(p, session) {
+  if (session.role !== 'student') return { ok: false, error: '학생만 학급에 참여할 수 있어요.' };
+  var studentUserId = session.userId;
+  var classCode     = sanitizeText(p.classCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, '');
 
   var classes = getSheetRows('classes');
-  var cls = classes.find(function(r) { return r.classCode === classCode; });
-  if (!cls) return { ok: false, error: '코드가 맞지 않아요. 선생님께 다시 확인해 주세요.' };
+  var cls     = classes.find(function(r) { return r.classCode === classCode; });
+  if (!cls)   return { ok: false, error: '코드가 맞지 않아요. 선생님께 다시 확인해 주세요.' };
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -450,9 +532,9 @@ function joinClass(p) {
   return { ok: true, className: cls.className, classId: cls.id };
 }
 
-function leaveClass(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+function leaveClass(p, session) {
+  if (session.role !== 'student') return { ok: false, error: '학생만 학급을 나갈 수 있어요.' };
+  var studentUserId = session.userId;
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -462,13 +544,14 @@ function leaveClass(p) {
   return { ok: true };
 }
 
-// ------------------------------------
+// ============================
 // 공지
-// ------------------------------------
+// ============================
 
-function setNotice(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
-  var notice = String(p.notice || '').trim();
+function setNotice(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 공지를 설정할 수 있어요.' };
+  var teacherUserId = session.userId;
+  var notice        = sanitizeText(p.notice, 500);
 
   var classes = getSheetRows('classes');
   var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
@@ -478,9 +561,8 @@ function setNotice(p) {
   return { ok: true };
 }
 
-function getNotice(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  if (!studentUserId) return { ok: true, notice: '' };
+function getNotice(p, session) {
+  var studentUserId = session.userId;
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -493,19 +575,19 @@ function getNotice(p) {
   return { ok: true, notice: cls.notice || '', className: cls.className };
 }
 
-// ------------------------------------
+// ============================
 // 교사 대시보드 — 전체 학생 조회
-// ------------------------------------
+// ============================
 
-function getAllStudentsForTeacher(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
-  if (!teacherUserId) return { ok: false, error: '교사 아이디가 없어요.' };
+function getAllStudentsForTeacher(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 조회할 수 있어요.' };
+  var teacherUserId = session.userId;
 
   var classes = getSheetRows('classes');
   var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
   if (!cls) return { ok: true, students: [], classInfo: null };
 
-  var allStudents = getSheetRows('students');
+  var allStudents   = getSheetRows('students');
   var classStudents = allStudents.filter(function(s) { return s.classId === cls.id; });
 
   // 최근 2개월 탭 + 레거시 탭
@@ -530,13 +612,14 @@ function getAllStudentsForTeacher(p) {
   };
 }
 
-// ------------------------------------
+// ============================
 // 계정 삭제
-// ------------------------------------
+// ============================
 
-function deleteStudentAccount(p) {
-  var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
-  var passwordHash  = String(p.passwordHash  || '').trim();
+function deleteStudentAccount(p, session) {
+  if (session.role !== 'student') return { ok: false, error: '학생 계정만 삭제할 수 있어요.' };
+  var studentUserId = session.userId; // 토큰에서 추출 — 클라이언트 값 무시
+  var passwordHash  = String(p.passwordHash || '').trim();
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -545,7 +628,7 @@ function deleteStudentAccount(p) {
 
   deleteSheetRow('students', student._row);
 
-  // 레거시 emotions 탭에서 삭제
+  // 레거시 emotions 탭에서도 삭제
   var legacyEmotions = getSheetRows('emotions');
   legacyEmotions
     .filter(function(e) { return e.studentUserId === studentUserId; })
@@ -555,13 +638,13 @@ function deleteStudentAccount(p) {
 
   // 월별 탭 전체에서 삭제
   deleteEmotionsForStudent(studentUserId);
-
   return { ok: true };
 }
 
-function deleteTeacherAccount(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
-  var passwordHash  = String(p.passwordHash  || '').trim();
+function deleteTeacherAccount(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사 계정만 삭제할 수 있어요.' };
+  var teacherUserId = session.userId; // 토큰에서 추출
+  var passwordHash  = String(p.passwordHash || '').trim();
 
   var teachers = getSheetRows('teachers');
   var teacher  = teachers.find(function(r) { return r.userId === teacherUserId; });
@@ -585,9 +668,9 @@ function deleteTeacherAccount(p) {
 }
 
 // 학급 명단 초기화 (학생 연결 해제, 계정·기록은 유지)
-function resetClassRoster(p) {
-  var teacherUserId = String(p.teacherUserId || '').trim().toLowerCase();
-  if (!teacherUserId) return { ok: false, error: '교사 아이디가 없어요.' };
+function resetClassRoster(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 명단을 초기화할 수 있어요.' };
+  var teacherUserId = session.userId;
 
   var classes = getSheetRows('classes');
   var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
@@ -602,13 +685,14 @@ function resetClassRoster(p) {
   return { ok: true };
 }
 
-function changeStudentPassword(p) {
-  var teacherUserId  = String(p.teacherUserId  || '').trim().toLowerCase();
-  var studentUserId  = String(p.studentUserId  || '').trim().toLowerCase();
-  var studentName    = String(p.studentName    || '').trim();
+function changeStudentPassword(p, session) {
+  if (session.role !== 'teacher') return { ok: false, error: '교사만 비밀번호를 변경할 수 있어요.' };
+  var teacherUserId   = session.userId;
+  var studentUserId   = sanitizeText(p.studentUserId, 50).toLowerCase();
+  var studentName     = sanitizeText(p.studentName, 30);
   var newPasswordHash = String(p.newPasswordHash || '').trim();
 
-  if (!teacherUserId || !studentUserId || !studentName || !newPasswordHash)
+  if (!studentUserId || !studentName || !newPasswordHash)
     return { ok: false, error: '필수 정보가 부족해요.' };
 
   // 교사의 학급 확인
@@ -618,24 +702,24 @@ function changeStudentPassword(p) {
 
   // 학생 찾기 및 검증
   var students = getSheetRows('students');
-  var student = students.find(function(s) { return s.userId === studentUserId; });
+  var student  = students.find(function(s) { return s.userId === studentUserId; });
   if (!student) return { ok: false, error: '해당 학번의 학생이 없어요.' };
   if (student.name !== studentName) return { ok: false, error: '이름이 맞지 않아요.' };
-  if (student.classId !== cls.id) return { ok: false, error: '이 학급에 속한 학생이 아니에요.' };
+  if (student.classId !== cls.id)   return { ok: false, error: '이 학급에 속한 학생이 아니에요.' };
 
   updateSheetRow('students', student._row, { passwordHash: newPasswordHash });
   return { ok: true };
 }
 
-// ------------------------------------
+// ============================
 // 부하 시뮬레이션 (개발자 전용 — 편집기에서 직접 실행)
-// ------------------------------------
+// ============================
 
-var SIM_PREFIX            = 'sim_';
-var SIM_TEACHER_COUNT     = 12;
+var SIM_PREFIX             = 'sim_';
+var SIM_TEACHER_COUNT      = 12;
 var SIM_STUDENTS_PER_CLASS = 30;   // 30 × 12 = 360명
-var SIM_DAYS              = 2;
-var SIM_PW_HASH           = 'simulation_test_hash_00000000';
+var SIM_DAYS               = 2;
+var SIM_PW_HASH            = 'simulation_test_hash_00000000';
 
 /**
  * 1단계: 교사 12명 · 학급 12개 · 학생 360명 · 감정 720건 생성
@@ -728,12 +812,12 @@ function simulateReadTest() {
   var log = [];
   var t0, elapsed;
 
-  // 교사 대시보드 조회 (30명 × 2일 = 60건)
   var teachers = getSheetRows('teachers');
   var simTeacher = teachers.find(function(r){ return r.userId.indexOf(SIM_PREFIX) === 0; });
   if (simTeacher) {
     t0 = Date.now();
-    var dashResult = getAllStudentsForTeacher({ teacherUserId: simTeacher.userId });
+    var fakeSession = { valid: true, userId: simTeacher.userId, role: 'teacher' };
+    var dashResult = getAllStudentsForTeacher({}, fakeSession);
     elapsed = Date.now() - t0;
     var totalEmo = (dashResult.students||[]).reduce(function(sum,s){ return sum + s.emotions.length; }, 0);
     log.push('📊 교사 대시보드 조회');
@@ -743,12 +827,12 @@ function simulateReadTest() {
     log.push('');
   }
 
-  // 학생 감정 조회 (1명 × 2일 = 2건)
   var students = getSheetRows('students');
   var simStudent = students.find(function(r){ return r.userId.indexOf(SIM_PREFIX) === 0; });
   if (simStudent) {
     t0 = Date.now();
-    var emoResult = getEmotions({ studentUserId: simStudent.userId });
+    var fakeSession2 = { valid: true, userId: simStudent.userId, role: 'student' };
+    var emoResult = getEmotions({}, fakeSession2);
     elapsed = Date.now() - t0;
     log.push('📱 학생 감정 조회');
     log.push('   감정 건수: ' + (emoResult.emotions||[]).length + '건');
@@ -801,21 +885,19 @@ function simulateCleanup() {
   Logger.log(log.join('\n'));
 }
 
-// ------------------------------------
+// ============================
 // 초기 시트 구조 생성 (최초 1회 직접 실행)
-// ------------------------------------
+// ============================
 
 /** 개발자용: 전체 데이터 초기화 (Apps Script 편집기에서 직접 실행) */
 function resetAllData() {
   var ss = getSpreadsheet();
-  // 기본 탭 초기화 (헤더 유지, 데이터만 삭제)
   ['teachers', 'students', 'emotions', 'classes'].forEach(function(name) {
     var sheet = ss.getSheetByName(name);
     if (!sheet) return;
     var lastRow = sheet.getLastRow();
     if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
   });
-  // emo_ 월별 탭 전체 삭제
   ss.getSheets().forEach(function(sheet) {
     if (sheet.getName().match(/^emo_\d{4}_\d{2}$/)) ss.deleteSheet(sheet);
   });

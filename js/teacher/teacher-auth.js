@@ -16,8 +16,10 @@ function getValidTeacherSessionId() {
 function clearTeacherSession() {
   localStorage.removeItem(LS_TEACHER_SESSION_KEY);
   localStorage.removeItem(LS_TEACHER_NAME_KEY);
+  localStorage.removeItem('emotion-checkin-session-token');
   sessionStorage.removeItem(LS_TEACHER_SESSION_KEY);
   sessionStorage.removeItem(LS_TEACHER_NAME_KEY);
+  sessionStorage.removeItem('emotion-checkin-session-token');
   if (typeof setTeacherClassCache === 'function') setTeacherClassCache(null);
 }
 

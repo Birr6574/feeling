@@ -161,12 +161,12 @@ function renderRecentLogs() {
     const div = document.createElement('div');
     div.className = 'log-card';
     div.innerHTML = `
-      <div class="log-emo">${e.emo}</div>
+      <div class="log-emo">${escHtml(e.emo)}</div>
       <div class="log-info">
-        <p class="log-title">${e.label}</p>
-        <p class="log-sub">${e.note || '메모 없음'}</p>
+        <p class="log-title">${escHtml(e.label)}</p>
+        <p class="log-sub">${e.note ? escHtml(e.note) : '메모 없음'}</p>
       </div>
-      <p class="log-time">${formatRecordDateTime(e.date)}</p>
+      <p class="log-time">${escHtml(formatRecordDateTime(e.date))}</p>
     `;
     container.appendChild(div);
   });
@@ -190,15 +190,25 @@ function renderHistoryList() {
     const div = document.createElement('div');
     div.className = 'hist-item';
     div.innerHTML = `
-      <div class="log-emo">${e.emo}</div>
+      <div class="log-emo">${escHtml(e.emo)}</div>
       <div class="log-info" style="flex:1;">
-        <p class="log-title">${e.label}</p>
-        <p class="log-sub">${e.note || '메모 없음'}</p>
+        <p class="log-title">${escHtml(e.label)}</p>
+        <p class="log-sub">${e.note ? escHtml(e.note) : '메모 없음'}</p>
       </div>
-      <span class="hist-date">${formatRecordDateTime(e.date)}</span>
+      <span class="hist-date">${escHtml(formatRecordDateTime(e.date))}</span>
     `;
     container.appendChild(div);
   });
+}
+
+/** HTML 특수문자 이스케이프 (XSS 방지) */
+function escHtml(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
 }
 
 // 모든 화면 한 번에 업데이트
