@@ -33,7 +33,8 @@ function doPost(e) {
       getNotice:              function() { return getNotice(body); },
       deleteStudentAccount:   function() { return deleteStudentAccount(body); },
       deleteTeacherAccount:   function() { return deleteTeacherAccount(body); },
-      resetClassRoster:       function() { return resetClassRoster(body); }
+      resetClassRoster:       function() { return resetClassRoster(body); },
+      changeStudentPassword:  function() { return changeStudentPassword(body); }
     };
     if (!handlers[action]) return json({ ok: false, error: '알 수 없는 요청이에요.' });
     return json(handlers[action]());
@@ -515,6 +516,31 @@ function resetClassRoster(p) {
     .sort(function(a, b) { return b._row - a._row; })
     .forEach(function(s) { updateSheetRow('students', s._row, { classId: '' }); });
 
+  return { ok: true };
+}
+
+function changeStudentPassword(p) {
+  var teacherUserId  = String(p.teacherUserId  || '').trim().toLowerCase();
+  var studentUserId  = String(p.studentUserId  || '').trim().toLowerCase();
+  var studentName    = String(p.studentName    || '').trim();
+  var newPasswordHash = String(p.newPasswordHash || '').trim();
+
+  if (!teacherUserId || !studentUserId || !studentName || !newPasswordHash)
+    return { ok: false, error: '필수 정보가 부족해요.' };
+
+  // 교사의 학급 확인
+  var classes = getSheetRows('classes');
+  var cls = classes.find(function(r) { return r.teacherId === teacherUserId; });
+  if (!cls) return { ok: false, error: '학급이 없어요.' };
+
+  // 학생 찾기 및 검증
+  var students = getSheetRows('students');
+  var student = students.find(function(s) { return s.userId === studentUserId; });
+  if (!student) return { ok: false, error: '해당 학번의 학생이 없어요.' };
+  if (student.name !== studentName) return { ok: false, error: '이름이 맞지 않아요.' };
+  if (student.classId !== cls.id) return { ok: false, error: '이 학급에 속한 학생이 아니에요.' };
+
+  updateSheetRow('students', student._row, { passwordHash: newPasswordHash });
   return { ok: true };
 }
 

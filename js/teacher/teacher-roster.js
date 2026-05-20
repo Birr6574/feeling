@@ -147,6 +147,64 @@ function updateTeacherRosterClassPageTitle() {
   el.textContent = name || '학급 미설정';
 }
 
+function initTeacherPasswordChangeForm() {
+  const form = document.getElementById('form-teacher-change-student-pw');
+  if (!form || form.dataset.pwWired === '1') return;
+  form.dataset.pwWired = '1';
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    const msgEl = document.getElementById('teacher-pw-change-msg');
+    if (msgEl) { msgEl.textContent = ''; msgEl.style.color = ''; }
+    const submitBtn = form.querySelector('[type="submit"]');
+    if (submitBtn) submitBtn.disabled = true;
+
+    const userId = ((document.getElementById('teacher-pw-change-userid') || {}).value || '').trim();
+    const name   = ((document.getElementById('teacher-pw-change-name')   || {}).value || '').trim();
+    const newPw  =  (document.getElementById('teacher-pw-change-new')    || {}).value || '';
+    const newPw2 =  (document.getElementById('teacher-pw-change-new2')   || {}).value || '';
+
+    if (!/^\d+$/.test(userId) || userId.length < 1) {
+      if (msgEl) msgEl.textContent = '학번은 숫자만 입력할 수 있어요.';
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    if (!name) {
+      if (msgEl) msgEl.textContent = '이름을 입력해 주세요.';
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    if (newPw.length < 6) {
+      if (msgEl) msgEl.textContent = '비밀번호는 6자 이상이에요.';
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+    if (newPw !== newPw2) {
+      if (msgEl) msgEl.textContent = '비밀번호가 서로 달라요.';
+      if (submitBtn) submitBtn.disabled = false;
+      return;
+    }
+
+    const teacherUserId   = _getSessionValue('emotion-checkin-teacher-user');
+    const newPasswordHash = await hashPassword(newPw);
+    const result = await apiCall('changeStudentPassword', {
+      teacherUserId,
+      studentUserId: userId,
+      studentName:   name,
+      newPasswordHash,
+    });
+
+    if (submitBtn) submitBtn.disabled = false;
+
+    if (!result.ok) {
+      if (msgEl) msgEl.textContent = result.error || '변경할 수 없어요.';
+      return;
+    }
+    form.reset();
+    if (msgEl) { msgEl.textContent = '비밀번호가 변경됐어요!'; msgEl.style.color = '#86efac'; }
+  });
+}
+
 function initTeacherRosterPanel() {
   // 수동추가 폼은 새 API 구조에서 지원하지 않으므로 숨김
   const rosterForm = document.getElementById('teacher-roster-form');
@@ -177,6 +235,7 @@ function initTeacherRosterPanel() {
   }
 
   initTeacherStudentAccountForm();
+  initTeacherPasswordChangeForm();
   updateTeacherRosterClassPageTitle();
 }
 

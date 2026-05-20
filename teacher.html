@@ -355,6 +355,32 @@
                 </div>
               </form>
             </div>
+            <div class="teacher-manage-card teacher-manage-card--spacious" style="margin-top:20px;">
+              <h3 class="teacher-manage-title teacher-settings-section-title" style="margin-bottom:14px;">학생 비밀번호 변경</h3>
+              <form id="form-teacher-change-student-pw" class="teacher-roster-form teacher-settings-form" autocomplete="off">
+                <div class="teacher-settings-row">
+                  <label class="teacher-roster-label" for="teacher-pw-change-userid">학번 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" id="teacher-pw-change-userid" maxlength="20" inputmode="numeric" pattern="\d*" placeholder="숫자만 입력" required>
+                </div>
+                <div class="teacher-settings-row">
+                  <label class="teacher-roster-label" for="teacher-pw-change-name">이름 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" id="teacher-pw-change-name" maxlength="30" placeholder="홍길동" required>
+                </div>
+                <div class="teacher-settings-row">
+                  <label class="teacher-roster-label" for="teacher-pw-change-new">새 비밀번호 <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">(6자 이상)</span></label>
+                  <input class="teacher-roster-input" type="password" id="teacher-pw-change-new" autocomplete="new-password" required>
+                </div>
+                <div class="teacher-settings-row">
+                  <label class="teacher-roster-label" for="teacher-pw-change-new2">새 비밀번호 확인 <span class="teacher-roster-req">*</span></label>
+                  <input class="teacher-roster-input" type="password" id="teacher-pw-change-new2" autocomplete="new-password" required>
+                </div>
+                <p id="teacher-pw-change-msg" class="teacher-auth-msg" role="status"></p>
+                <div class="teacher-roster-actions teacher-roster-actions--end">
+                  <button type="submit" class="broadcast-btn" id="teacher-pw-change-submit">비밀번호 변경</button>
+                </div>
+              </form>
+            </div>
+
             <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px;margin-bottom:8px;">
               <h3 class="teacher-manage-subtitle" style="margin:0;">현재 명단</h3>
               <button type="button" id="teacher-roster-reset-btn" class="broadcast-btn ghost" style="border-color:#f87171;color:#fca5a5;font-size:12px;padding:6px 12px;">명단 초기화</button>
