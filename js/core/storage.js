@@ -10,9 +10,8 @@
 // ------------------------------------
 
 var _emotionsCache = null;       // 학생 감정 기록 배열
-var _teacherNoticeCache = null;  // { text, at } 또는 null
 var _studentClassCache = null;   // { id, classCode, className } 또는 null
-var _teacherClassCache = null;   // { id, classCode, className, notice } 또는 null
+var _teacherClassCache = null;   // { id, classCode, className } 또는 null
 
 // ------------------------------------
 // 세션 값 읽기 헬퍼 (localStorage 우선, 없으면 sessionStorage)
@@ -69,40 +68,6 @@ async function saveEmotion(emo, label, note) {
     notifyEmotionAppSync('emotions');
   }
   return result.ok ? entry : null;
-}
-
-// ------------------------------------
-// 공지 (학생 화면)
-// ------------------------------------
-
-function getTeacherMessage() {
-  return _teacherNoticeCache;
-}
-
-async function loadNoticeForStudent(userId) {
-  var result = await apiCall('getNotice', { studentUserId: userId });
-  if (result.ok && result.notice) {
-    _teacherNoticeCache = { text: result.notice, at: result.notice };
-  } else {
-    _teacherNoticeCache = null;
-  }
-  return _teacherNoticeCache;
-}
-
-// 교사 화면에서 공지 설정
-async function setTeacherMessage(text) {
-  var userId = _getSessionValue('emotion-checkin-teacher-user');
-  if (!userId) return;
-  var t = String(text || '').trim();
-  await apiCall('setNotice', { teacherUserId: userId, notice: t });
-  notifyEmotionAppSync('teacher-msg');
-}
-
-async function clearTeacherMessage() {
-  var userId = _getSessionValue('emotion-checkin-teacher-user');
-  if (!userId) return;
-  await apiCall('setNotice', { teacherUserId: userId, notice: '' });
-  notifyEmotionAppSync('teacher-msg');
 }
 
 // ------------------------------------
@@ -193,7 +158,6 @@ function clearData() {
   });
   // 캐시 초기화
   _emotionsCache = null;
-  _teacherNoticeCache = null;
   _studentClassCache = null;
   _teacherClassCache = null;
   location.reload();

@@ -21,14 +21,12 @@ function showScreen(id) {
 
   // 통계 화면 열 때 차트 다시 그리기
   if (id === 'stat') renderStats();
-  if (id === 'home' && typeof renderTeacherBanner === 'function') renderTeacherBanner();
   if (id === 'set' && typeof applyRemindSettingsToDom === 'function') applyRemindSettingsToDom();
 }
 
 // 로그인 직후 (auth.js에서 호출)
 function onStudentLogin() {
   renderAll();
-  if (typeof renderTeacherBanner === 'function') renderTeacherBanner();
 }
 
 // 앱이 처음 실행될 때
@@ -41,18 +39,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
   if (typeof initStudentTheme === 'function') initStudentTheme();
   if (typeof initStudentRemindSettings === 'function') initStudentRemindSettings();
-
-  const bannerClose = document.getElementById('teacher-banner-close');
-  if (bannerClose) {
-    bannerClose.addEventListener('click', function () {
-      const msg = typeof getTeacherMessage === 'function' ? getTeacherMessage() : null;
-      if (msg && msg.at) {
-        sessionStorage.setItem('emotion-banner-dismissed-at', msg.at);
-      }
-      const wrap = document.getElementById('teacher-banner');
-      if (wrap) wrap.style.display = 'none';
-    });
-  }
 
   renderAll();
 });
@@ -77,7 +63,6 @@ function scheduleStudentCrossTabRefresh() {
     scheduleStudentCrossTabRefresh._t = null;
     if (document.visibilityState !== 'visible') return;
     try {
-      if (typeof renderTeacherBanner === 'function') renderTeacherBanner();
       if (typeof window.updateStudentClassLinkUiAll === 'function') {
         window.updateStudentClassLinkUiAll();
       }
@@ -92,7 +77,6 @@ function scheduleStudentCrossTabRefresh() {
 function setupStudentSync() {
   window.addEventListener('storage', function (e) {
     if (!e.key) return;
-    if (e.key === 'emotion-checkin-teacher-msg') renderTeacherBanner();
     if (e.key === 'emotions' || (e.key.indexOf('emotions_') === 0)) renderAll();
     if (e.key === 'emotion-checkin-theme') {
       if (typeof syncStudentThemeFromOtherTab === 'function') syncStudentThemeFromOtherTab();
@@ -134,10 +118,7 @@ function setupStudentSync() {
     const ch = new BroadcastChannel('emotion-checkin');
     ch.onmessage = function (ev) {
       const k = ev.data && ev.data.kind;
-      if (k === 'teacher-msg') {
-        if (typeof renderTeacherBanner === 'function') renderTeacherBanner();
-        return;
-      }
+      if (k === 'teacher-msg') return;
       if (k === 'theme-student') {
         if (typeof syncStudentThemeFromOtherTab === 'function') syncStudentThemeFromOtherTab();
         return;

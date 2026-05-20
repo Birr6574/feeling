@@ -49,21 +49,6 @@ async function initTeacherDashboard() {
   setupTeacherSync();
   wireTeacherTabNavigation();
 
-  const sendBtn = document.getElementById('teacher-broadcast-send');
-  const clearBtn = document.getElementById('teacher-broadcast-clear');
-  const input = document.getElementById('teacher-broadcast-input');
-  if (sendBtn && input && typeof setTeacherMessage === 'function') {
-    sendBtn.addEventListener('click', function () {
-      setTeacherMessage(input.value);
-      input.value = '';
-    });
-  }
-  if (clearBtn && typeof clearTeacherMessage === 'function') {
-    clearBtn.addEventListener('click', function () {
-      clearTeacherMessage();
-      if (input) input.value = '';
-    });
-  }
 
   const btnInsight = document.getElementById('btn-open-insight');
   if (btnInsight) {

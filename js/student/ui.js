@@ -201,33 +201,10 @@ function renderHistoryList() {
   });
 }
 
-// 선생님 메시지 배너 (홈 상단)
-function renderTeacherBanner() {
-  const wrap = document.getElementById('teacher-banner');
-  const textEl = document.getElementById('teacher-banner-text');
-  if (!wrap || !textEl || typeof getTeacherMessage !== 'function') return;
-
-  const msg = getTeacherMessage();
-  if (!msg || !msg.text) {
-    wrap.style.display = 'none';
-    return;
-  }
-
-  const dismissed = sessionStorage.getItem('emotion-banner-dismissed-at');
-  if (dismissed === msg.at) {
-    wrap.style.display = 'none';
-    return;
-  }
-
-  textEl.textContent = msg.text;
-  wrap.style.display = 'block';
-}
-
 // 모든 화면 한 번에 업데이트
 function renderAll() {
   renderTodayCard();
   renderRecentLogs();
   renderHistoryList();
   renderStats();
-  renderTeacherBanner();
 }

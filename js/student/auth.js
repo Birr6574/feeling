@@ -158,7 +158,6 @@ function wireAuthForms() {
       // 학생
       applyStudentSession(result.userId, result.name, result.classInfo || null, rememberMe);
       await loadEmotionsForUser(result.userId);
-      if (result.classInfo) await loadNoticeForStudent(result.userId);
       onAuthOk();
     });
   }
@@ -290,7 +289,6 @@ document.addEventListener('DOMContentLoaded', function() {
     applyStudentSession(saved, savedName, null, !!localStorage.getItem(LS_SESSION_USER_KEY));
     (async function() {
       await loadEmotionsForUser(saved);
-      await loadNoticeForStudent(saved);
       onAuthOk();
     })();
   } else {

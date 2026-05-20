@@ -76,7 +76,6 @@
   <nav class="teacher-desk-tabs" aria-label="교사 메뉴 (PC)">
     <button type="button" class="teacher-desk-tab is-active" data-teacher-tab="individual" id="teacher-desk-tab-individual">학생별 보기</button>
     <button type="button" class="teacher-desk-tab" data-teacher-tab="group" id="teacher-desk-tab-group">학급 전체보기</button>
-    <button type="button" class="teacher-desk-tab" data-teacher-tab="broadcast" id="teacher-desk-tab-broadcast">전체 공지하기</button>
     <button type="button" class="teacher-desk-tab" data-teacher-tab="settings" id="teacher-desk-tab-settings">설정</button>
   </nav>
 
@@ -196,20 +195,6 @@
       </div>
     </div>
 
-    <div class="teacher-panel" data-teacher-panel="broadcast" id="teacher-panel-broadcast">
-      <div class="teacher-broadcast-panel-inner">
-        <h2 class="teacher-broadcast-panel-title">전체 공지하기</h2>
-        <p class="broadcast-hint teacher-broadcast-panel-hint">같은 브라우저의 학생 앱 홈 상단에 <strong>전체 공지</strong>로 표시돼요. 학생이 홈을 열면 바로 볼 수 있습니다.</p>
-        <div class="teacher-broadcast-panel-card">
-          <label class="teacher-broadcast-input-label" for="teacher-broadcast-input">공지 내용</label>
-          <textarea id="teacher-broadcast-input" class="broadcast-textarea" rows="4" maxlength="200" placeholder="예: 오늘 수업은 3교시에 진행합니다."></textarea>
-          <div class="teacher-broadcast-actions">
-            <button type="button" class="broadcast-btn" id="teacher-broadcast-send">전체공지 등록</button>
-            <button type="button" class="broadcast-btn ghost" id="teacher-broadcast-clear">공지 지우기</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <div class="teacher-panel" data-teacher-panel="settings" id="teacher-panel-settings">
       <div class="teacher-settings-inner">
@@ -401,10 +386,6 @@
     <button type="button" class="teacher-mtab" data-teacher-tab="group" id="teacher-mtab-group" aria-label="학급 전체보기">
       <span class="teacher-mtab-ico" aria-hidden="true">👥</span>
       <span class="teacher-mtab-lbl">학급</span>
-    </button>
-    <button type="button" class="teacher-mtab" data-teacher-tab="broadcast" id="teacher-mtab-broadcast" aria-label="전체 공지하기">
-      <span class="teacher-mtab-ico" aria-hidden="true">📢</span>
-      <span class="teacher-mtab-lbl">공지</span>
     </button>
     <button type="button" class="teacher-mtab" data-teacher-tab="settings" id="teacher-mtab-settings" aria-label="설정">
       <span class="teacher-mtab-ico" aria-hidden="true">⚙️</span>
