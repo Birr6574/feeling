@@ -104,6 +104,71 @@ function generateId() {
   return Utilities.getUuid();
 }
 
+// ------------------------------------
+// 월별 감정 탭 헬퍼
+// ------------------------------------
+
+/** "YYYY_MM" 형식의 월 키 반환 */
+function getMonthKey(date) {
+  var d = date || new Date();
+  return d.getFullYear() + '_' + String(d.getMonth() + 1).padStart(2, '0');
+}
+
+/** 최근 n개월의 월 키 배열 반환 (이번 달 포함) */
+function getRecentMonthKeys(n) {
+  var keys = [];
+  var d = new Date();
+  for (var i = 0; i < n; i++) {
+    keys.push(getMonthKey(new Date(d.getFullYear(), d.getMonth() - i, 1)));
+  }
+  return keys;
+}
+
+/** 월별 탭이 없으면 생성 후 반환 */
+function getOrCreateMonthSheet(monthKey) {
+  var ss = getSpreadsheet();
+  var name = 'emo_' + monthKey;
+  var sheet = ss.getSheetByName(name);
+  if (!sheet) {
+    sheet = ss.insertSheet(name);
+    sheet.appendRow(['id', 'studentUserId', 'emo', 'label', 'note', 'date', 'createdAt']);
+  }
+  return sheet;
+}
+
+/** 월별 탭의 행 데이터 반환 (탭 없으면 빈 배열) */
+function getMonthSheetRows(monthKey) {
+  var ss = getSpreadsheet();
+  var sheet = ss.getSheetByName('emo_' + monthKey);
+  if (!sheet) return [];
+  var data = sheet.getDataRange().getValues();
+  if (data.length <= 1) return [];
+  var headers = data[0];
+  return data.slice(1).map(function(row, i) {
+    var obj = { _row: i + 2, _sheetName: 'emo_' + monthKey };
+    headers.forEach(function(h, j) {
+      var v = row[j];
+      obj[h] = (v === null || v === undefined) ? '' : String(v);
+    });
+    return obj;
+  });
+}
+
+/** emo_ 로 시작하는 모든 탭에서 특정 학생 행 삭제 */
+function deleteEmotionsForStudent(studentUserId) {
+  var ss = getSpreadsheet();
+  ss.getSheets().forEach(function(sheet) {
+    if (!sheet.getName().match(/^emo_\d{4}_\d{2}$/)) return;
+    var data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return;
+    var uidCol = data[0].indexOf('studentUserId');
+    if (uidCol === -1) return;
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][uidCol]) === studentUserId) sheet.deleteRow(i + 1);
+    }
+  });
+}
+
 function generateClassCode() {
   var chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
   var s = '';
@@ -255,16 +320,20 @@ function saveEmotion(p) {
   var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
   if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
 
+  var now = new Date();
+  var sheet = getOrCreateMonthSheet(getMonthKey(now));
   var id = generateId();
-  appendSheetRow('emotions', {
+  var obj = {
     id: id,
     studentUserId: studentUserId,
-    emo:   String(p.emo   || ''),
-    label: String(p.label || ''),
-    note:  String(p.note  || ''),
-    date:  String(p.date  || new Date().toISOString()),
-    createdAt: new Date().toISOString()
-  });
+    emo:       String(p.emo   || ''),
+    label:     String(p.label || ''),
+    note:      String(p.note  || ''),
+    date:      String(p.date  || now.toISOString()),
+    createdAt: now.toISOString()
+  };
+  var headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+  sheet.appendRow(headers.map(function(h) { return obj[h] !== undefined ? obj[h] : ''; }));
   return { ok: true, id: id };
 }
 
@@ -272,8 +341,14 @@ function getEmotions(p) {
   var studentUserId = String(p.studentUserId || '').trim().toLowerCase();
   if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
 
-  var rows = getSheetRows('emotions');
-  var filtered = rows
+  // 최근 6개월 월별 탭 + 기존 emotions 탭(레거시) 합산
+  var allRows = [];
+  getRecentMonthKeys(6).forEach(function(key) {
+    allRows = allRows.concat(getMonthSheetRows(key));
+  });
+  allRows = allRows.concat(getSheetRows('emotions')); // 레거시
+
+  var filtered = allRows
     .filter(function(r) { return r.studentUserId === studentUserId; })
     .map(function(r) { return { id: r.id, emo: r.emo, label: r.label, note: r.note, date: r.date }; })
     .sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
@@ -433,7 +508,12 @@ function getAllStudentsForTeacher(p) {
   var allStudents = getSheetRows('students');
   var classStudents = allStudents.filter(function(s) { return s.classId === cls.id; });
 
-  var allEmotions = getSheetRows('emotions');
+  // 최근 2개월 탭 + 레거시 탭
+  var allEmotions = [];
+  getRecentMonthKeys(2).forEach(function(key) {
+    allEmotions = allEmotions.concat(getMonthSheetRows(key));
+  });
+  allEmotions = allEmotions.concat(getSheetRows('emotions')); // 레거시
 
   var result = classStudents.map(function(s) {
     var emotions = allEmotions
@@ -465,13 +545,16 @@ function deleteStudentAccount(p) {
 
   deleteSheetRow('students', student._row);
 
-  // 감정 기록 삭제 (행 번호가 바뀌므로 다시 조회 후 역순 삭제)
-  var emotions = getSheetRows('emotions');
-  emotions
+  // 레거시 emotions 탭에서 삭제
+  var legacyEmotions = getSheetRows('emotions');
+  legacyEmotions
     .filter(function(e) { return e.studentUserId === studentUserId; })
     .map(function(e) { return e._row; })
     .sort(function(a, b) { return b - a; })
     .forEach(function(rowNum) { deleteSheetRow('emotions', rowNum); });
+
+  // 월별 탭 전체에서 삭제
+  deleteEmotionsForStudent(studentUserId);
 
   return { ok: true };
 }
@@ -547,6 +630,23 @@ function changeStudentPassword(p) {
 // ------------------------------------
 // 초기 시트 구조 생성 (최초 1회 직접 실행)
 // ------------------------------------
+
+/** 개발자용: 전체 데이터 초기화 (Apps Script 편집기에서 직접 실행) */
+function resetAllData() {
+  var ss = getSpreadsheet();
+  // 기본 탭 초기화 (헤더 유지, 데이터만 삭제)
+  ['teachers', 'students', 'emotions', 'classes'].forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) return;
+    var lastRow = sheet.getLastRow();
+    if (lastRow > 1) sheet.deleteRows(2, lastRow - 1);
+  });
+  // emo_ 월별 탭 전체 삭제
+  ss.getSheets().forEach(function(sheet) {
+    if (sheet.getName().match(/^emo_\d{4}_\d{2}$/)) ss.deleteSheet(sheet);
+  });
+  Logger.log('전체 초기화 완료');
+}
 
 function setupSheets() {
   var ss = getSpreadsheet();
