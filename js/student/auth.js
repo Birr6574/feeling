@@ -94,14 +94,24 @@ function onAuthOk() {
 }
 
 function wireTeacherCheckbox() {
-  var checkbox = document.getElementById('signup-is-teacher');
-  var codeWrap = document.getElementById('signup-teacher-code-wrap');
+  var checkbox  = document.getElementById('signup-is-teacher');
+  var codeWrap  = document.getElementById('signup-teacher-code-wrap');
+  var idWrap    = document.getElementById('signup-userid-wrap');
+  var teacherNote = document.getElementById('signup-teacher-id-note');
+  var nameInput = document.getElementById('signup-name');
   if (!checkbox || !codeWrap) return;
-  checkbox.addEventListener('change', function() {
-    codeWrap.style.display = checkbox.checked ? 'block' : 'none';
+
+  function syncTeacherFields() {
+    var on = checkbox.checked;
+    codeWrap.style.display = on ? 'block' : 'none';
     var codeInput = document.getElementById('signup-teacher-code');
-    if (codeInput) codeInput.required = checkbox.checked;
-  });
+    if (codeInput) codeInput.required = on;
+    // 교사 체크 시 학번 입력 숨기고 이름을 ID로 사용
+    if (idWrap)      idWrap.style.display      = on ? 'none' : 'block';
+    if (teacherNote) teacherNote.style.display = on ? 'block' : 'none';
+  }
+
+  checkbox.addEventListener('change', syncTeacherFields);
 }
 
 function wireAuthForms() {
@@ -166,8 +176,13 @@ function wireAuthForms() {
         ? ((document.getElementById('signup-teacher-code') || {}).value || '').trim()
         : '';
       var userId;
-      try { userId = validateUserId(document.getElementById('signup-userid').value); }
-      catch (err) { setAuthError('auth-error-signup', err.message); return; }
+      if (isTeacher) {
+        if (!name) { setAuthError('auth-error-signup', '이름을 입력해 주세요.'); return; }
+        userId = name;
+      } else {
+        try { userId = validateUserId(document.getElementById('signup-userid').value); }
+        catch (err) { setAuthError('auth-error-signup', err.message); return; }
+      }
 
       if (name.length < 1 || name.length > 30) { setAuthError('auth-error-signup', '이름은 1~30자로 입력해 주세요.'); return; }
       if (password.length < 6)  { setAuthError('auth-error-signup', '비밀번호는 6자 이상이에요.'); return; }

@@ -47,15 +47,17 @@
         <form id="form-signup" class="auth-form" autocomplete="on">
           <label class="auth-label" for="signup-name">이름</label>
           <input class="auth-input" id="signup-name" maxlength="30" placeholder="홍길동" autocomplete="name" required>
-          <label class="auth-label" for="signup-userid">학번</label>
-          <input class="auth-input" id="signup-userid" maxlength="20" autocomplete="username" inputmode="numeric" pattern="\d*" placeholder="숫자만 입력" required>
+          <div id="signup-userid-wrap">
+            <label class="auth-label" for="signup-userid">학번</label>
+            <input class="auth-input" id="signup-userid" maxlength="20" autocomplete="username" inputmode="numeric" pattern="\d*" placeholder="숫자만 입력" required>
+          </div>
+          <p id="signup-teacher-id-note" class="auth-hint" style="display:none;margin-bottom:10px;">이름이 로그인 아이디로 사용돼요.</p>
           <label class="auth-label" for="signup-password">비밀번호 <span class="auth-hint">(6자 이상)</span></label>
           <input class="auth-input" type="password" id="signup-password" autocomplete="new-password" required>
           <label class="auth-label" for="signup-password2">비밀번호 확인</label>
           <input class="auth-input" type="password" id="signup-password2" autocomplete="new-password" required>
           <label class="auth-check-label">
-            <input type="checkbox" id="signup-is-teacher"
-              onchange="var w=document.getElementById('signup-teacher-code-wrap');w.style.display=this.checked?'block':'none';"> 교사 계정으로 가입
+            <input type="checkbox" id="signup-is-teacher"> 교사 계정으로 가입
           </label>
           <div id="signup-teacher-code-wrap" style="display:none;">
             <label class="auth-label" for="signup-teacher-code">교사 인증코드</label>
