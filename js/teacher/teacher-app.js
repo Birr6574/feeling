@@ -16,6 +16,7 @@ const TEACHER_CLASS_EMOTION_ROWS = [
 
 let allStudents = [];       // 전체 학생 데이터
 let selectedStudentId = null; // 현재 선택된 학생 ID
+let _teacherPollTimer = null; // 자동 갱신 타이머
 
 // =====================
 // 앱 시작 (teacher-auth.js에서 로그인 후 호출)
@@ -184,11 +185,19 @@ function setupTeacherSync() {
     }
   });
   document.addEventListener('visibilitychange', function () {
-    if (document.visibilityState === 'visible') scheduleTeacherCrossTabRefresh();
+    if (document.visibilityState === 'visible') {
+      scheduleTeacherCrossTabRefresh();
+      startTeacherPolling(); // 탭 복귀 시 폴링 재시작
+    } else {
+      stopTeacherPolling(); // 백그라운드 시 폴링 중지
+    }
   });
   window.addEventListener('pageshow', function (ev) {
     if (ev.persisted) scheduleTeacherCrossTabRefresh();
   });
+
+  // 60초 자동 갱신 시작
+  startTeacherPolling();
   try {
     const ch = new BroadcastChannel('emotion-checkin');
     ch.onmessage = function (ev) {
@@ -211,6 +220,24 @@ function setupTeacherSync() {
     };
   } catch (e) {}
 }
+
+function startTeacherPolling() {
+  stopTeacherPolling(); // 중복 방지
+  _teacherPollTimer = setInterval(async function () {
+    if (document.visibilityState !== 'visible') return; // 혹시 백그라운드면 건너뜀
+    try { await refreshDashboard(); } catch (e) {}      // 오류 나도 다음 주기에 재시도
+  }, 60000); // 60초
+}
+
+function stopTeacherPolling() {
+  if (_teacherPollTimer) {
+    clearInterval(_teacherPollTimer);
+    _teacherPollTimer = null;
+  }
+}
+
+// 로그아웃·계정삭제 시 폴링 정리용
+window.stopTeacherPolling = stopTeacherPolling;
 
 async function refreshDashboard() {
   allStudents = await fetchAllStudents();

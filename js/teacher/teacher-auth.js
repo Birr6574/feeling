@@ -37,6 +37,7 @@ function refreshTeacherSessionLabel() {
 }
 
 window.teacherSignOut = function() {
+  if (typeof stopTeacherPolling === 'function') stopTeacherPolling();
   clearTeacherSession();
   location.href = 'index.html';
 };
