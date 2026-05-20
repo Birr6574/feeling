@@ -131,9 +131,8 @@ function wireAuthForms() {
     formLogin.addEventListener('submit', async function(e) {
       e.preventDefault();
       setAuthError('auth-error-login', '');
-      var userId;
-      try { userId = validateUserId(document.getElementById('login-userid').value); }
-      catch (err) { setAuthError('auth-error-login', err.message); return; }
+      var userId = (document.getElementById('login-userid').value || '').trim();
+      if (!userId) { setAuthError('auth-error-login', '학번 또는 이름을 입력해 주세요.'); return; }
 
       var password    = document.getElementById('login-password').value;
       var rememberMe  = !!(document.getElementById('login-remember') || {}).checked;
