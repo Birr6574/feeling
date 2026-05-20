@@ -109,6 +109,9 @@ function wireTeacherCheckbox() {
     // 교사 체크 시 학번 입력 숨기고 이름을 ID로 사용
     if (idWrap)      idWrap.style.display      = on ? 'none' : 'block';
     if (teacherNote) teacherNote.style.display = on ? 'block' : 'none';
+    // 숨김 시 required 해제해야 폼 제출 가능
+    var uidInput = document.getElementById('signup-userid');
+    if (uidInput) uidInput.required = !on;
   }
 
   checkbox.addEventListener('change', syncTeacherFields);
