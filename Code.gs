@@ -628,6 +628,180 @@ function changeStudentPassword(p) {
 }
 
 // ------------------------------------
+// 부하 시뮬레이션 (개발자 전용 — 편집기에서 직접 실행)
+// ------------------------------------
+
+var SIM_PREFIX            = 'sim_';
+var SIM_TEACHER_COUNT     = 12;
+var SIM_STUDENTS_PER_CLASS = 30;   // 30 × 12 = 360명
+var SIM_DAYS              = 2;
+var SIM_PW_HASH           = 'simulation_test_hash_00000000';
+
+/**
+ * 1단계: 교사 12명 · 학급 12개 · 학생 360명 · 감정 720건 생성
+ * Apps Script 편집기에서 simulateInsertData 선택 후 ▶ 실행
+ */
+function simulateInsertData() {
+  var ss  = getSpreadsheet();
+  var t0  = Date.now();
+  var log = [];
+  var now = new Date();
+
+  var teacherSheet  = ss.getSheetByName('teachers');
+  var classSheet    = ss.getSheetByName('classes');
+  var studentSheet  = ss.getSheetByName('students');
+
+  var thH = teacherSheet.getRange(1,1,1,teacherSheet.getLastColumn()).getValues()[0];
+  var clH = classSheet.getRange(1,1,1,classSheet.getLastColumn()).getValues()[0];
+  var stH = studentSheet.getRange(1,1,1,studentSheet.getLastColumn()).getValues()[0];
+
+  var teacherRows = [], classRows = [], studentRows = [];
+  var emotionsByMonth = {};
+
+  var emos = ['😊','😐','😢','😡','😴'];
+
+  for (var t = 1; t <= SIM_TEACHER_COUNT; t++) {
+    var teacherUserId = SIM_PREFIX + 'teacher_' + String(t).padStart(2,'0');
+    var classId       = generateId();
+    var classCode     = 'SIM' + String(t).padStart(3,'0');
+
+    var tObj = { id: generateId(), name: '시뮬교사'+t, userId: teacherUserId,
+                 passwordHash: SIM_PW_HASH, classId: classId, createdAt: now.toISOString() };
+    teacherRows.push(thH.map(function(h){ return tObj[h]||''; }));
+
+    var cObj = { id: classId, teacherId: teacherUserId, classCode: classCode,
+                 className: '시뮬학급'+t, notice: '', createdAt: now.toISOString() };
+    classRows.push(clH.map(function(h){ return cObj[h]||''; }));
+
+    for (var s = 1; s <= SIM_STUDENTS_PER_CLASS; s++) {
+      var sNum          = (t - 1) * SIM_STUDENTS_PER_CLASS + s;
+      var studentUserId = SIM_PREFIX + String(sNum).padStart(5,'0');
+
+      var sObj = { id: generateId(), name: '시뮬학생'+sNum, userId: studentUserId,
+                   passwordHash: SIM_PW_HASH, classId: classId, createdAt: now.toISOString() };
+      studentRows.push(stH.map(function(h){ return sObj[h]||''; }));
+
+      for (var d = 0; d < SIM_DAYS; d++) {
+        var dayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - d);
+        var dateStr = dayDate.toISOString().substring(0,10);
+        var mKey    = getMonthKey(dayDate);
+        if (!emotionsByMonth[mKey]) emotionsByMonth[mKey] = [];
+        emotionsByMonth[mKey].push({
+          id: generateId(), studentUserId: studentUserId,
+          emo: emos[sNum % emos.length], label: '테스트', note: '',
+          date: dateStr, createdAt: now.toISOString()
+        });
+      }
+    }
+  }
+
+  // 일괄 삽입 (setValues가 appendRow보다 10~50배 빠름)
+  teacherSheet.getRange(teacherSheet.getLastRow()+1,1,teacherRows.length,thH.length).setValues(teacherRows);
+  log.push('교사 ' + teacherRows.length + '명 삽입 (' + (Date.now()-t0) + 'ms)');
+
+  classSheet.getRange(classSheet.getLastRow()+1,1,classRows.length,clH.length).setValues(classRows);
+  log.push('학급 ' + classRows.length + '개 삽입 (' + (Date.now()-t0) + 'ms)');
+
+  studentSheet.getRange(studentSheet.getLastRow()+1,1,studentRows.length,stH.length).setValues(studentRows);
+  log.push('학생 ' + studentRows.length + '명 삽입 (' + (Date.now()-t0) + 'ms)');
+
+  Object.keys(emotionsByMonth).forEach(function(mKey) {
+    var emoSheet = getOrCreateMonthSheet(mKey);
+    var eH = emoSheet.getRange(1,1,1,emoSheet.getLastColumn()).getValues()[0];
+    var rows = emotionsByMonth[mKey].map(function(obj){
+      return eH.map(function(h){ return obj[h]!==undefined ? obj[h] : ''; });
+    });
+    emoSheet.getRange(emoSheet.getLastRow()+1,1,rows.length,eH.length).setValues(rows);
+    log.push('감정 ' + rows.length + '건 삽입 [' + mKey + '] (' + (Date.now()-t0) + 'ms)');
+  });
+
+  log.push('');
+  log.push('✅ 전체 삽입 완료 — 총 소요: ' + (Date.now()-t0) + 'ms');
+  Logger.log(log.join('\n'));
+}
+
+/**
+ * 2단계: 읽기 성능 측정
+ * simulateInsertData() 실행 후 이 함수를 실행하세요.
+ */
+function simulateReadTest() {
+  var log = [];
+  var t0, elapsed;
+
+  // 교사 대시보드 조회 (30명 × 2일 = 60건)
+  var teachers = getSheetRows('teachers');
+  var simTeacher = teachers.find(function(r){ return r.userId.indexOf(SIM_PREFIX) === 0; });
+  if (simTeacher) {
+    t0 = Date.now();
+    var dashResult = getAllStudentsForTeacher({ teacherUserId: simTeacher.userId });
+    elapsed = Date.now() - t0;
+    var totalEmo = (dashResult.students||[]).reduce(function(sum,s){ return sum + s.emotions.length; }, 0);
+    log.push('📊 교사 대시보드 조회');
+    log.push('   학생 수: ' + (dashResult.students||[]).length + '명');
+    log.push('   감정 건수: ' + totalEmo + '건');
+    log.push('   응답 시간: ' + elapsed + 'ms');
+    log.push('');
+  }
+
+  // 학생 감정 조회 (1명 × 2일 = 2건)
+  var students = getSheetRows('students');
+  var simStudent = students.find(function(r){ return r.userId.indexOf(SIM_PREFIX) === 0; });
+  if (simStudent) {
+    t0 = Date.now();
+    var emoResult = getEmotions({ studentUserId: simStudent.userId });
+    elapsed = Date.now() - t0;
+    log.push('📱 학생 감정 조회');
+    log.push('   감정 건수: ' + (emoResult.emotions||[]).length + '건');
+    log.push('   응답 시간: ' + elapsed + 'ms');
+  }
+
+  Logger.log(log.join('\n'));
+}
+
+/**
+ * 3단계: 시뮬레이션 데이터 정리
+ * 테스트 완료 후 반드시 실행하세요.
+ */
+function simulateCleanup() {
+  var ss  = getSpreadsheet();
+  var t0  = Date.now();
+  var log = [];
+
+  ['teachers','students','classes'].forEach(function(name) {
+    var sheet = ss.getSheetByName(name);
+    if (!sheet) return;
+    var data    = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var col     = Math.max(headers.indexOf('userId'), headers.indexOf('teacherId'));
+    if (col < 0) return;
+    var toDelete = [];
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][col]).indexOf(SIM_PREFIX) === 0) toDelete.push(i + 1);
+    }
+    toDelete.forEach(function(row){ sheet.deleteRow(row); });
+    log.push(name + ': ' + toDelete.length + '행 삭제');
+  });
+
+  ss.getSheets().forEach(function(sheet) {
+    if (!sheet.getName().match(/^emo_\d{4}_\d{2}$/)) return;
+    var data   = sheet.getDataRange().getValues();
+    if (data.length <= 1) return;
+    var uidCol = data[0].indexOf('studentUserId');
+    if (uidCol < 0) return;
+    var toDelete = [];
+    for (var i = data.length - 1; i >= 1; i--) {
+      if (String(data[i][uidCol]).indexOf(SIM_PREFIX) === 0) toDelete.push(i + 1);
+    }
+    toDelete.forEach(function(row){ sheet.deleteRow(row); });
+    if (toDelete.length) log.push(sheet.getName() + ': ' + toDelete.length + '행 삭제');
+  });
+
+  log.push('');
+  log.push('🧹 정리 완료 — 총 소요: ' + (Date.now()-t0) + 'ms');
+  Logger.log(log.join('\n'));
+}
+
+// ------------------------------------
 // 초기 시트 구조 생성 (최초 1회 직접 실행)
 // ------------------------------------
 
