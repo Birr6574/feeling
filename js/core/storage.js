@@ -80,6 +80,19 @@ function getStudentClassInfo() {
 
 function setStudentClassCache(info) {
   _studentClassCache = info || null;
+  // 새로고침 후 복원을 위해 저장
+  try {
+    if (info) localStorage.setItem('emotion-checkin-student-class', JSON.stringify(info));
+    else { localStorage.removeItem('emotion-checkin-student-class'); sessionStorage.removeItem('emotion-checkin-student-class'); }
+  } catch (e) {}
+}
+
+function restoreStudentClassCache() {
+  try {
+    var raw = localStorage.getItem('emotion-checkin-student-class') || sessionStorage.getItem('emotion-checkin-student-class');
+    if (raw) { _studentClassCache = JSON.parse(raw); return _studentClassCache; }
+  } catch (e) {}
+  return null;
 }
 
 function isStudentClassLinkActive() {
@@ -150,7 +163,8 @@ function clearData() {
     'emotion-checkin-logged-user',
     'emotion-checkin-user-name',
     'emotion-checkin-teacher-user',
-    'emotion-checkin-teacher-name'
+    'emotion-checkin-teacher-name',
+    'emotion-checkin-student-class'
   ];
   sessionKeys.forEach(function(k) {
     localStorage.removeItem(k);
@@ -188,14 +202,19 @@ function getTopEmotion() {
 function getStreak() {
   var emotions = getEmotions();
   if (emotions.length === 0) return 0;
-  var dates = [...new Set(emotions.map(function(e) {
-    return new Date(e.date).toLocaleDateString('ko-KR');
-  }))];
+  // 날짜(자정 기준)만 추출해서 unique 목록 (최신순)
+  var seen = {};
+  var days = [];
+  emotions.forEach(function(e) {
+    var d = new Date(e.date);
+    var midnight = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+    if (!seen[midnight]) { seen[midnight] = true; days.push(midnight); }
+  });
+  days.sort(function(a, b) { return b - a; }); // 최신순 정렬
   var streak = 1;
-  for (var i = 0; i < dates.length - 1; i++) {
-    var d1 = new Date(emotions.find(function(e) { return new Date(e.date).toLocaleDateString('ko-KR') === dates[i]; }).date);
-    var d2 = new Date(emotions.find(function(e) { return new Date(e.date).toLocaleDateString('ko-KR') === dates[i + 1]; }).date);
-    if (Math.round((d1 - d2) / (1000 * 60 * 60 * 24)) === 1) streak++;
+  var ONE_DAY = 1000 * 60 * 60 * 24;
+  for (var i = 0; i < days.length - 1; i++) {
+    if (Math.round((days[i] - days[i + 1]) / ONE_DAY) === 1) streak++;
     else break;
   }
   return streak;

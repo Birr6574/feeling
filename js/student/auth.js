@@ -286,7 +286,8 @@ document.addEventListener('DOMContentLoaded', function() {
   var savedName = (saved && (localStorage.getItem(LS_SESSION_NAME_KEY) || sessionStorage.getItem(LS_SESSION_NAME_KEY))) || '';
 
   if (saved) {
-    applyStudentSession(saved, savedName, null, !!localStorage.getItem(LS_SESSION_USER_KEY));
+    var savedClass = typeof restoreStudentClassCache === 'function' ? restoreStudentClassCache() : null;
+    applyStudentSession(saved, savedName, savedClass, !!localStorage.getItem(LS_SESSION_USER_KEY));
     (async function() {
       await loadEmotionsForUser(saved);
       onAuthOk();
