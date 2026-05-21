@@ -336,6 +336,15 @@ function unifiedLogin(p) {
 }
 
 function unifiedSignup(p) {
+  // 회원가입 속도 제한: 같은 userId로 5분 내 3회 이상 시도 차단
+  var attemptKey = 'signup_' + sanitizeText(p.userId, 50).toLowerCase();
+  try {
+    var cache  = CacheService.getScriptCache();
+    var count  = parseInt(cache.get(attemptKey) || '0', 10);
+    if (count >= 3) return { ok: false, error: '잠시 후 다시 시도해 주세요.' };
+    cache.put(attemptKey, String(count + 1), 300); // 5분
+  } catch (e) {}
+
   if (p.isTeacher) {
     if (sanitizeText(p.teacherAuthCode, 50) !== getTeacherAuthCode())
       return { ok: false, error: '교사 인증코드가 올바르지 않아요.' };
@@ -516,13 +525,27 @@ function getClassByTeacher(p, session) {
 }
 
 function joinClass(p, session) {
-  if (session.role !== 'student') return { ok: false, error: '학생만 학급에 참여할 수 있어요.' };
-  var studentUserId = session.userId;
-  var classCode     = sanitizeText(p.classCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, '');
+  var studentUserId, cls;
 
-  var classes = getSheetRows('classes');
-  var cls     = classes.find(function(r) { return r.classCode === classCode; });
-  if (!cls)   return { ok: false, error: '코드가 맞지 않아요. 선생님께 다시 확인해 주세요.' };
+  if (session.role === 'student') {
+    // 학생이 코드로 직접 참여
+    studentUserId     = session.userId;
+    var classCode     = sanitizeText(p.classCode, 20).toUpperCase().replace(/[^A-Z0-9]/g, '');
+    var classes       = getSheetRows('classes');
+    cls               = classes.find(function(r) { return r.classCode === classCode; });
+    if (!cls) return { ok: false, error: '코드가 맞지 않아요. 선생님께 다시 확인해 주세요.' };
+
+  } else if (session.role === 'teacher') {
+    // 교사가 학생 계정 생성 직후 자신의 학급에 자동 연결
+    studentUserId     = sanitizeText(p.studentUserId, 50).toLowerCase();
+    if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+    var classes2      = getSheetRows('classes');
+    cls               = classes2.find(function(r) { return r.teacherId === session.userId; });
+    if (!cls) return { ok: false, error: '교사의 학급을 찾을 수 없어요.' };
+
+  } else {
+    return { ok: false, error: '권한이 없어요.' };
+  }
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -533,8 +556,30 @@ function joinClass(p, session) {
 }
 
 function leaveClass(p, session) {
-  if (session.role !== 'student') return { ok: false, error: '학생만 학급을 나갈 수 있어요.' };
-  var studentUserId = session.userId;
+  var studentUserId;
+
+  if (session.role === 'student') {
+    // 학생이 직접 탈퇴
+    studentUserId = session.userId;
+
+  } else if (session.role === 'teacher') {
+    // 교사가 자신의 학급에서 학생 연결 해제
+    studentUserId = sanitizeText(p.studentUserId, 50).toLowerCase();
+    if (!studentUserId) return { ok: false, error: '학생 아이디가 없어요.' };
+    // 해당 학생이 자신의 학급 소속인지 확인
+    var classes  = getSheetRows('classes');
+    var cls      = classes.find(function(r) { return r.teacherId === session.userId; });
+    if (!cls)    return { ok: false, error: '학급이 없어요.' };
+    var students0 = getSheetRows('students');
+    var student0  = students0.find(function(r) { return r.userId === studentUserId; });
+    if (!student0)          return { ok: false, error: '학생 계정을 찾을 수 없어요.' };
+    if (student0.classId !== cls.id) return { ok: false, error: '이 학급에 속한 학생이 아니에요.' };
+    updateSheetRow('students', student0._row, { classId: '' });
+    return { ok: true };
+
+  } else {
+    return { ok: false, error: '권한이 없어요.' };
+  }
 
   var students = getSheetRows('students');
   var student  = students.find(function(r) { return r.userId === studentUserId; });
@@ -703,9 +748,9 @@ function changeStudentPassword(p, session) {
   // 학생 찾기 및 검증
   var students = getSheetRows('students');
   var student  = students.find(function(s) { return s.userId === studentUserId; });
-  if (!student) return { ok: false, error: '해당 학번의 학생이 없어요.' };
-  if (student.name !== studentName) return { ok: false, error: '이름이 맞지 않아요.' };
-  if (student.classId !== cls.id)   return { ok: false, error: '이 학급에 속한 학생이 아니에요.' };
+  // 학생 존재·이름 불일치·학급 불일치 모두 같은 오류 메시지 (정보 노출 방지)
+  if (!student || student.name !== studentName || student.classId !== cls.id)
+    return { ok: false, error: '학번 또는 이름이 맞지 않아요.' };
 
   updateSheetRow('students', student._row, { passwordHash: newPasswordHash });
   return { ok: true };

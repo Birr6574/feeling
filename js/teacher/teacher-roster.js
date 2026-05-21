@@ -42,10 +42,11 @@ async function createStudentLoginAccount({ name, studentNumber, gradeLabel, clas
   var result = await apiCall('studentSignup', { name: name.trim(), userId: uid, passwordHash: passwordHash });
   if (!result.ok) return result;
 
-  // 현재 학급이 있으면 자동으로 학급에 연결
+  // 현재 학급이 있으면 교사 권한으로 자동 연결
+  // (서버에서 session.role === 'teacher'로 처리, studentUserId를 body로 전달)
   var room = typeof getClassRoom === 'function' ? getClassRoom() : null;
   if (room && room.code) {
-    await apiCall('joinClass', { studentUserId: uid, classCode: room.code });
+    await apiCall('joinClass', { studentUserId: uid });
   }
   return { ok: true };
 }
@@ -62,7 +63,7 @@ function renderTeacherManageList(students) {
   }
 
   const list = [...students].sort(function (a, b) {
-    return String(a.name).localeCompare(String(b.name), 'ko');
+    return String(b.name).localeCompare(String(a.name), 'ko');
   });
 
   list.forEach(function (s) {
@@ -185,10 +186,9 @@ function initTeacherPasswordChangeForm() {
       return;
     }
 
-    const teacherUserId   = _getSessionValue('emotion-checkin-teacher-user');
+    // teacherUserId는 서버에서 세션 토큰으로 확인
     const newPasswordHash = await hashPassword(newPw);
     const result = await apiCall('changeStudentPassword', {
-      teacherUserId,
       studentUserId: userId,
       studentName:   name,
       newPasswordHash,
@@ -220,13 +220,10 @@ function initTeacherRosterPanel() {
   if (resetBtn && resetBtn.dataset.wired !== '1') {
     resetBtn.dataset.wired = '1';
     resetBtn.addEventListener('click', async function () {
-      const pw = prompt('명단 초기화 비밀번호를 입력하세요.');
-      if (pw === null) return;
-      if (pw !== '3651') { alert('비밀번호가 맞지 않아요.'); return; }
       if (!confirm('학급의 모든 학생 연결을 해제할까요? 학생 계정과 감정 기록은 유지돼요.')) return;
+      if (!confirm('정말 초기화할까요? 되돌릴 수 없어요.')) return;
       resetBtn.disabled = true;
-      const teacherUserId = _getSessionValue('emotion-checkin-teacher-user');
-      const result = await apiCall('resetClassRoster', { teacherUserId: teacherUserId });
+      const result = await apiCall('resetClassRoster', {});
       resetBtn.disabled = false;
       if (!result.ok) { alert(result.error || '초기화할 수 없어요.'); return; }
       alert('명단이 초기화됐어요.');

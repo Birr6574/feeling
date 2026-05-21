@@ -4,9 +4,8 @@
 =========================== */
 
 async function fetchAllStudents() {
-  var teacherUserId = _getSessionValue('emotion-checkin-teacher-user');
-  if (!teacherUserId) return [];
-  var result = await apiCall('getAllStudentsForTeacher', { teacherUserId: teacherUserId });
+  // teacherUserId는 서버에서 세션 토큰으로 확인하므로 전달 불필요
+  var result = await apiCall('getAllStudentsForTeacher', {});
   if (!result.ok) return [];
   // 학급 정보도 캐시 갱신
   if (typeof setTeacherClassCache === 'function') setTeacherClassCache(result.classInfo || null);

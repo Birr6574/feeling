@@ -31,8 +31,6 @@ function onStudentLogin() {
 
 // 앱이 처음 실행될 때
 document.addEventListener('DOMContentLoaded', function () {
-  console.log('감정 체크인 앱 시작!');
-
   if (typeof initStudentStatusBarClock === 'function') initStudentStatusBarClock();
 
   setupStudentSync();

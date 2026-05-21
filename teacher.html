@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <!-- Content Security Policy: 외부 스크립트·스타일 로드 차단, API 서버만 허용 -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self';
+                 script-src 'self' 'unsafe-inline';
+                 style-src 'self' 'unsafe-inline';
+                 connect-src 'self' https://script.google.com;
+                 img-src 'self' data:;
+                 font-src 'self';
+                 frame-ancestors 'none';">
   <title>교사 대시보드 - 감정 체크인</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='24'%3E📊%3C/text%3E%3C/svg%3E">
   <script>
