@@ -11,7 +11,23 @@
                  connect-src 'self' https://script.google.com https://script.googleusercontent.com;
                  img-src 'self' data:;
                  font-src 'self';
+                 object-src 'none';
+                 base-uri 'self';
+                 form-action 'self';
                  frame-ancestors 'none';">
+  <!-- 클릭재킹 방어: iframe 안에서 열리면 페이지를 숨기고 최상위로 탈출
+       (GitHub Pages는 HTTP 헤더를 못 보내므로 X-Frame-Options 대신 JS로 방어) -->
+  <style id="anti-clickjack">html{display:none !important;}</style>
+  <script>
+    (function () {
+      if (self === top) {
+        var s = document.getElementById('anti-clickjack');
+        if (s && s.parentNode) s.parentNode.removeChild(s);
+      } else {
+        try { top.location = self.location; } catch (e) {}
+      }
+    })();
+  </script>
   <title>감정 체크인</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='24'%3E💜%3C/text%3E%3C/svg%3E">
   <script>
