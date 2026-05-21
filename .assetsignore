@@ -3,6 +3,7 @@
 .git
 .gitignore
 .assetsignore
+wrangler.jsonc
 README.md
 Code.gs
 scripts
