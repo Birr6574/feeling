@@ -1,0 +1,9 @@
+# Cloudflare Workers static assets — 공개 배포에서 제외할 파일
+# (.git 저장소 노출 차단 + 백엔드 소스 비공개)
+.git
+.gitignore
+.assetsignore
+README.md
+Code.gs
+scripts
+feeling

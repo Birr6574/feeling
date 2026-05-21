@@ -1,0 +1,15 @@
+# 감정 체크인 (Emotion Check-in)
+
+> 학급 단위 감정 체크인 웹 애플리케이션. 학생은 매일의 감정을 기록하고, 교사는 별도 대시보드에서 학생별·학급 전체 현황을 확인합니다. 2026 KIT 바이브코딩 공모전 출품작.
+
+## 개요
+
+- 정적 HTML/CSS/바닐라 JavaScript로 동작하며, 백엔드는 Google Apps Script + Google Sheets를 사용합니다.
+- 학생 앱(`/`): 로그인, 감정 기록, 기록 목록, 통계·달력, 알림 시간·테마 설정, 학급 코드 연결.
+- 교사 대시보드(`/teacher.html`): 학생별 목록·상세, 학급 감정 분포, 공지, 학급·명단 관리.
+- 인증은 HMAC-SHA256 세션 토큰과 서버측 검증을 사용합니다.
+
+## 페이지
+
+- [학생 앱](https://feeling.birr6574.workers.dev/): 학생용 감정 기록 진입점
+- [교사 대시보드](https://feeling.birr6574.workers.dev/teacher.html): 교사 전용 학급 현황 대시보드
