@@ -631,7 +631,11 @@ function renderStudentList(students) {
 
   const mobile = window.matchMedia('(max-width: 900px)').matches;
 
-  students.forEach(student => {
+  const sortedStudents = [...students].sort(function (a, b) {
+    return String(a.name).localeCompare(String(b.name), 'ko');
+  });
+
+  sortedStudents.forEach(student => {
     const hasToday = hasTodayRecord(student);
     const todayEmo = hasToday ? student.emotions[0].emo : '❓';
     const todayLabel = hasToday ? student.emotions[0].label : '미기록';

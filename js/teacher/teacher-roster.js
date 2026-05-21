@@ -31,7 +31,7 @@ function resetTeacherRosterForm() {
 }
 
 /* 학생 계정 만들기 (Google Sheets API 기반) */
-async function createStudentLoginAccount({ name, studentNumber, gradeLabel, classLabel, userId, password, password2 }) {
+async function createStudentLoginAccount({ name, userId, password, password2 }) {
   if (!name || !name.trim()) return { ok: false, error: '이름을 입력해 주세요.' };
   const uid = (userId || '').trim().toLowerCase();
   if (!/^\d+$/.test(uid) || uid.length < 1 || uid.length > 20) return { ok: false, error: '학번은 숫자만 입력할 수 있어요.' };
@@ -63,7 +63,7 @@ function renderTeacherManageList(students) {
   }
 
   const list = [...students].sort(function (a, b) {
-    return String(b.name).localeCompare(String(a.name), 'ko');
+    return String(a.name).localeCompare(String(b.name), 'ko');
   });
 
   list.forEach(function (s) {
@@ -93,9 +93,6 @@ function renderTeacherManageList(students) {
 function resetTeacherStudentAccountForm() {
   [
     'teacher-acct-name',
-    'teacher-acct-student-number',
-    'teacher-acct-grade',
-    'teacher-acct-class',
     'teacher-acct-userid',
     'teacher-acct-password',
     'teacher-acct-password2',
@@ -120,9 +117,6 @@ function initTeacherStudentAccountForm() {
 
     const res = await createStudentLoginAccount({
       name:          (document.getElementById('teacher-acct-name') || {}).value || '',
-      studentNumber: (document.getElementById('teacher-acct-student-number') || {}).value || '',
-      gradeLabel:    (document.getElementById('teacher-acct-grade') || {}).value || '',
-      classLabel:    (document.getElementById('teacher-acct-class') || {}).value || '',
       userId:        (document.getElementById('teacher-acct-userid') || {}).value || '',
       password:      (document.getElementById('teacher-acct-password') || {}).value || '',
       password2:     (document.getElementById('teacher-acct-password2') || {}).value || '',

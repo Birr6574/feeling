@@ -66,37 +66,7 @@
 </head>
 <body class="teacher-body">
 
-  <div id="teacher-auth-gate" class="teacher-auth-gate">
-    <div class="teacher-auth-card">
-      <h1 class="teacher-auth-title">교사 대시보드</h1>
-      <p class="teacher-auth-lead">교사 전용 계정으로 로그인하세요. 처음이면 <strong>회원가입</strong>으로 계정을 만든 뒤 로그인해 주세요.</p>
-      <p id="teacher-auth-post-delete-hint" class="teacher-auth-msg" hidden></p>
-      <div class="teacher-auth-tabs">
-        <button type="button" class="teacher-auth-tab active" id="teacher-tab-login">로그인</button>
-        <button type="button" class="teacher-auth-tab" id="teacher-tab-signup">회원가입</button>
-      </div>
-      <form id="form-teacher-login" class="teacher-auth-form" autocomplete="on">
-        <label class="teacher-auth-label" for="teacher-login-userid">학번</label>
-        <input class="teacher-auth-input" id="teacher-login-userid" autocomplete="username" inputmode="numeric" pattern="\d*" required>
-        <label class="teacher-auth-label" for="teacher-login-password">비밀번호</label>
-        <input class="teacher-auth-input" type="password" id="teacher-login-password" autocomplete="current-password" required>
-        <button type="submit" class="teacher-auth-submit">로그인</button>
-        <p id="teacher-auth-error-login" class="teacher-auth-msg teacher-auth-msg--error"></p>
-      </form>
-      <form id="form-teacher-signup" class="teacher-auth-form" style="display:none;" autocomplete="on">
-        <label class="teacher-auth-label" for="teacher-signup-name">이름</label>
-        <input class="teacher-auth-input" id="teacher-signup-name" maxlength="30" placeholder="예: 김선생" required>
-        <label class="teacher-auth-label" for="teacher-signup-userid">학번</label>
-        <input class="teacher-auth-input" id="teacher-signup-userid" maxlength="20" autocomplete="username" inputmode="numeric" pattern="\d*" placeholder="숫자만 입력" required>
-        <label class="teacher-auth-label" for="teacher-signup-password">비밀번호 <span class="teacher-auth-hint">(6자 이상)</span></label>
-        <input class="teacher-auth-input" type="password" id="teacher-signup-password" autocomplete="new-password" required>
-        <label class="teacher-auth-label" for="teacher-signup-password2">비밀번호 확인</label>
-        <input class="teacher-auth-input" type="password" id="teacher-signup-password2" autocomplete="new-password" required>
-        <button type="submit" class="teacher-auth-submit">회원가입</button>
-        <p id="teacher-auth-error-signup" class="teacher-auth-msg teacher-auth-msg--error"></p>
-      </form>
-    </div>
-  </div>
+  <!-- 로그인은 index.html에서 통합 처리됩니다. 세션이 없으면 teacher-auth.js가 index.html로 리디렉트합니다. -->
 
   <div id="teacher-app-shell" class="teacher-app-shell" style="display:none;">
 
@@ -285,20 +255,6 @@
               <div class="teacher-field teacher-field--full">
                 <label class="teacher-roster-label" for="teacher-acct-name">이름 <span class="teacher-roster-req">*</span></label>
                 <input class="teacher-roster-input" id="teacher-acct-name" maxlength="30" placeholder="홍길동" required>
-              </div>
-              <div class="teacher-settings-field-grid teacher-settings-field-grid--2">
-                <div class="teacher-field">
-                  <label class="teacher-roster-label" for="teacher-acct-grade">학년 <span class="teacher-roster-req">*</span></label>
-                  <input class="teacher-roster-input" id="teacher-acct-grade" maxlength="40" placeholder="예: 2학년" required>
-                </div>
-                <div class="teacher-field">
-                  <label class="teacher-roster-label" for="teacher-acct-class">반 <span class="teacher-roster-req">*</span></label>
-                  <input class="teacher-roster-input" id="teacher-acct-class" maxlength="20" placeholder="예: 3반" required>
-                </div>
-              </div>
-              <div class="teacher-field teacher-field--full">
-                <label class="teacher-roster-label" for="teacher-acct-student-number">번호(자리·출석번호) <span class="teacher-roster-req">*</span> <span class="teacher-roster-opt">학년·반을 정한 뒤, 반에서 쓰는 번호예요.</span></label>
-                <input class="teacher-roster-input" id="teacher-acct-student-number" maxlength="20" placeholder="예: 15 또는 15번" required>
               </div>
               <div class="teacher-field teacher-field--full">
                 <label class="teacher-roster-label" for="teacher-acct-userid">학번 <span class="teacher-roster-req">*</span></label>
