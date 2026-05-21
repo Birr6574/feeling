@@ -490,7 +490,124 @@ function renderTeacherGroupStudentRows() {
 
 function renderTeacherGroupGrid() {
   renderTeacherGroupChart();
+  renderTeacherWeekStats();
   renderTeacherGroupStudentRows();
+}
+
+// =====================
+// 이번 주 요일별 감정 현황
+// =====================
+
+/** 이번 주 월~일 날짜 배열 반환 (월요일 시작) */
+function getThisWeekDays() {
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var dow = today.getDay(); // 0=일, 1=월 … 6=토
+  var monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
+  var days = [];
+  for (var i = 0; i < 7; i++) {
+    var d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    days.push(d);
+  }
+  return days;
+}
+
+/** 특정 날짜의 학급 전체 감정 집계 */
+function countDayEmotions(students, targetDate) {
+  var targetStr = targetDate.toDateString();
+  var counts = { none: 0 };
+  TEACHER_CLASS_EMOTION_ROWS.forEach(function (r) { counts[r.emo] = 0; });
+  (students || []).forEach(function (s) {
+    var rec = (s.emotions || []).find(function (e) {
+      return new Date(e.date).toDateString() === targetStr;
+    });
+    if (rec) {
+      if (counts[rec.emo] !== undefined) counts[rec.emo]++;
+      else counts.none++;
+    } else {
+      counts.none++;
+    }
+  });
+  return counts;
+}
+
+function renderTeacherWeekStats() {
+  var wrap = document.getElementById('teacher-group-week-chart');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+
+  var totalStudents = allStudents.length;
+  if (totalStudents === 0) {
+    wrap.innerHTML = '<p class="teacher-group-empty">학생이 없어요.</p>';
+    return;
+  }
+
+  var today = new Date();
+  today.setHours(0, 0, 0, 0);
+  var todayStr = today.toDateString();
+  var days = getThisWeekDays();
+
+  days.forEach(function (d) {
+    var isFuture = d > today;
+    var isToday  = d.toDateString() === todayStr;
+    var counts   = isFuture ? null : countDayEmotions(allStudents, d);
+
+    var checkedIn = (isFuture || !counts) ? 0 : (totalStudents - (counts.none || 0));
+    var pct = (totalStudents && !isFuture) ? Math.round((checkedIn / totalStudents) * 100) : 0;
+
+    // 최다 감정
+    var topEmo = isFuture ? '—' : '❓';
+    if (!isFuture && counts) {
+      var topCount = 0;
+      TEACHER_CLASS_EMOTION_ROWS.forEach(function (r) {
+        if ((counts[r.emo] || 0) > topCount) {
+          topCount = counts[r.emo];
+          topEmo   = r.emo;
+        }
+      });
+    }
+
+    var monthDay = (d.getMonth() + 1) + '/' + d.getDate();
+    var dayName  = DAY_KR[d.getDay()];
+
+    // 감정별 소분류
+    var breakdownHtml = '';
+    if (!isFuture && counts) {
+      TEACHER_CLASS_EMOTION_ROWS.forEach(function (r) {
+        var n = counts[r.emo] || 0;
+        breakdownHtml +=
+          '<span class="wdc-bd-item' + (n === 0 ? ' wdc-bd-zero' : '') + '">' +
+          r.emo + '<b>' + n + '</b></span>';
+      });
+      if ((counts.none || 0) > 0) {
+        breakdownHtml +=
+          '<span class="wdc-bd-item wdc-bd-zero">❓<b>' + counts.none + '</b></span>';
+      }
+    }
+
+    var card = document.createElement('div');
+    card.className =
+      'week-day-card' +
+      (isToday  ? ' week-day-card--today'  : '') +
+      (isFuture ? ' week-day-card--future' : '');
+
+    card.innerHTML =
+      '<div class="wdc-head">' +
+        '<span class="wdc-dayname">' + dayName + '</span>' +
+        '<span class="wdc-date">'    + monthDay + '</span>' +
+        (isToday ? '<span class="wdc-today-badge">오늘</span>' : '') +
+      '</div>' +
+      '<div class="wdc-top-emo" aria-hidden="true">' + topEmo + '</div>' +
+      '<div class="wdc-checkin">' + (isFuture ? '—' : checkedIn + '/' + totalStudents + '명') + '</div>' +
+      '<div class="wdc-bar-wrap" role="presentation">' +
+        '<div class="wdc-bar-fill" style="width:' + pct + '%"></div>' +
+      '</div>' +
+      '<div class="wdc-breakdown">' + breakdownHtml + '</div>';
+
+    wrap.appendChild(card);
+  });
 }
 
 // =====================
